@@ -50,7 +50,7 @@ class BasicNetwork:
 
 		for l in xrange(self.layers - 2, 0, -1): # for each non-input layer
 			previous_deltas = deltas_list[l + 1]
-			sums = numpy.dot(self.weights[l].T, previous_deltas)
+			sums = numpy.dot(self.weights[l].T, previous_deltas.reshape(len(previous_deltas), 1))
 			deltas_list[l] = numpy.multiply(sums, util.sigmoid_d2(activations[l]))
 
 		# compute squared-error partial derivatives with respect to weight and bias parameters
