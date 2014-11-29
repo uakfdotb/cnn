@@ -1,37 +1,84 @@
 import numpy
+import scipy.signal
 import util
 
 class BasicNetwork:
 	def __init__(self, shape):
 		# shape is an iterable of integers, each representing a layer
 		# each integer specifies the number of neurons in that layer
-		self.layers = len(shape)
-		self.shape = shape
-		self.weights = []
-		self.bias = []
-		for i in xrange(len(shape) - 1):
-			# randomly generate matrix of weights for current layer
-			# W_jk = weight of neuron k in previous layer (i) for neuron j in current layer (i+1)
-			prev_count = shape[i]
-			cur_count = shape[i + 1]
-			self.weights.append(numpy.random.rand(cur_count, prev_count) * 2 - 1)
+		self.nlayers = len(shape)
+		self.layers = []
+		self.shape = list(shape)
 
-			# also generate a bias vector, b_j = bias for neuron j in current layer
-			self.bias.append(numpy.random.rand(cur_count, 1) * 2 - 1)
+		# first layer is input layer
+		self.layers.append({'type': 'input'})
+
+		# process other layers
+		for i in xrange(len(shape) - 1):
+			if isinstance(shape[i + 1], dict):
+				if shape[i + 1]['type'] == 'convsample':
+					# add a 2D convolutional/subsampling layer
+					m = shape[i + 1]['m'] # input sidelength
+					c = shape[i + 1]['c'] # number of channels in image
+					n = shape[i + 1]['n'] # filter sidelength
+					k = shape[i + 1]['k'] # number of convolutional filters
+					p = shape[i + 1]['p'] # pooled region length
+					conv_count = m - n + 1 # convolution output sidelength
+
+					if self.shape[i] != m * m * c: # output size of previous layer must match image dimensions
+						raise Exception('mismatching sidelength')
+
+					if conv_count % p != 0: # convolution output must be divisible by pooled region size
+						raise Exception('conv_count % p != 0')
+
+					o = conv_count / p # number of pooled regions sidelength (also output sidelength)
+
+					weights = numpy.random.rand(k * c, n, n) * 5 - 1
+					bias = numpy.random.rand(k * c) * 2 - 1
+					self.shape[i + 1] = k * o * o
+					self.layers.append({'type': 'convsample', 'weights': weights, 'bias': bias, 'm': m, 'c': c, 'n': n, 'k': k, 'p': p, 'conv_count': conv_count, 'o': o})
+			else:
+				# randomly generate matrix of weights for current layer
+				# W_jk = weight of neuron k in previous layer (i) for neuron j in current layer (i+1)
+				prev_count = self.shape[i]
+				cur_count = self.shape[i + 1]
+				weights = numpy.random.rand(cur_count, prev_count) * 2 - 1
+
+				# also generate a bias vector, b_j = bias for neuron j in current layer
+				bias = numpy.random.rand(cur_count, 1) * 2 - 1
+
+				self.layers.append({'type': 'sigmoid', 'weights': weights, 'bias': bias})
 
 	def forward(self, inputs, return_activations = False):
 		# inputs specifies one float for each neuron in the first layer
 		# if return_activations is true, we return a list of activations at each layer
 		#  otherwise, we only return the output layer
 		values = numpy.array([inputs], float).T # values in current layer
-		activations = [values]
+		activations = [{'activations': values}]
 
-		for i in xrange(len(self.weights)):
-			# compute the weighted sum of neuron inputs, plus bias term (for each neuron in current layer)
-			z_vector = numpy.dot(self.weights[i], values) + self.bias[i]
-			# apply sigmoid activation function
-			values = util.sigmoid(z_vector)
-			if return_activations: activations.append(values[0, :])
+		for layer in self.layers[1:]:
+			if layer['type'] == 'sigmoid':
+				# compute the weighted sum of neuron inputs, plus bias term (for each neuron in current layer)
+				z_vector = numpy.dot(layer['weights'], values) + layer['bias']
+
+				# apply sigmoid activation function
+				values = util.sigmoid(z_vector)
+				if return_activations: activations.append({'activations': values[:, 0]})
+			elif layer['type'] == 'convsample':
+				# carry out convolution to get convolved values
+				convolved_out = numpy.zeros((layer['k'], layer['conv_count'], layer['conv_count']))
+				for k in xrange(len(layer['weights'])):
+					convolved_out[k] = scipy.signal.convolve2d(values.reshape(layer['m'], layer['m']), numpy.rot90(layer['weights'][k], 2), 'valid')
+					convolved_out[k] = util.sigmoid(convolved_out[k] + layer['bias'][k])
+
+				# pool the convolved features
+				pooled = numpy.zeros((layer['k'], layer['o'], layer['o']))
+				for k in xrange(layer['k']):
+					for i in xrange(layer['o']):
+						for j in xrange(layer['o']):
+							pooled[k][i][j] = numpy.average(convolved_out[k, (i * layer['p']):((i + 1) * layer['p']), (j * layer['p']):((j + 1) * layer['p'])])
+				values = pooled.reshape(util.prod(pooled.shape), 1)
+				if return_activations: activations.append({'activations': values[:, 0], 'extra': convolved_out})
 
 		if return_activations: return activations
 		else: return values[0, :]
@@ -45,21 +92,56 @@ class BasicNetwork:
 		activations = self.forward(inputs[:, 0], True)
 
 		# compute deltas at each layer
-		deltas_list = [None] * self.layers # deltas_list[0] is for input layer and remains None
-		deltas_list[self.layers - 1] = numpy.multiply(activations[self.layers - 1] - desired_outputs, util.sigmoid_d2(activations[self.layers - 1]))
+		deltas_list = [None] * self.nlayers # deltas_list[0] is for input layer and remains None
+		deltas_list[self.nlayers - 1] = numpy.multiply(activations[self.nlayers - 1]['activations'] - desired_outputs, util.sigmoid_d2(activations[self.nlayers - 1]['activations']))
 
-		for l in xrange(self.layers - 2, 0, -1): # for each non-input layer
+		for l in xrange(self.nlayers - 2, 0, -1): # for each non-input layer
 			previous_deltas = deltas_list[l + 1]
-			sums = numpy.dot(self.weights[l].T, previous_deltas.reshape(len(previous_deltas), 1))
-			deltas_list[l] = numpy.multiply(sums, util.sigmoid_d2(activations[l]))
+			target_layer = self.layers[l + 1]
+
+			if target_layer['type'] == 'sigmoid':
+				sums = numpy.dot(target_layer['weights'].T, previous_deltas.reshape(util.prod(previous_deltas.shape), 1))
+				deltas_list[l] = numpy.multiply(sums.flatten(), util.sigmoid_d2(activations[l]['activations']))
+			elif target_layer['type'] == 'convsample':
+				#deltas_list[l] = numpy.zeros((target_layer['k'], activations[l].shape[0], activations[l].shape[1]))
+				#previous_deltas = previous_deltas.reshape(target_layer['k'], target_layer['p'], target_layer['p'])
+
+				#for k in xrange(target_layer['k']):
+				#	pooled_size = target_layer['m'] / target_layer['p']
+				#	sums = (1. / pooled_size / pooled_size) * ponumpy.kron(previous_deltas[k], numpy.ones((pooled_size, pooled_size))) # upsample over mean pooling
+				#	deltas_list[l][k, :, :] = numpy.multiply(sums, util.sigmoid_d2(activations[l][k].flatten()))
+				#	deltas_list[l] = None
+				raise Exception('convsample bp')
 
 		# compute squared-error partial derivatives with respect to weight and bias parameters
 		# we do this in a list indexed by layer, and then in an array
 		weight_derivatives = []
 		bias_derivatives = []
-		for l in xrange(self.layers - 1): # loop over each weights
-			weight_derivatives.append(numpy.multiply(deltas_list[l + 1], activations[l].T))
-			bias_derivatives.append(deltas_list[l + 1].reshape(len(deltas_list[l + 1]), 1))
+		for l in xrange(self.nlayers - 1): # loop over each weights
+			previous_deltas = deltas_list[l + 1]
+			target_layer = self.layers[l + 1]
+
+			if target_layer['type'] == 'sigmoid':
+				weight_derivatives.append(numpy.dot(previous_deltas.reshape(len(previous_deltas), 1), activations[l]['activations'].reshape(1, len(activations[l]['activations']))))
+				bias_derivatives.append(previous_deltas.reshape(len(deltas_list[l + 1]), 1))
+			elif target_layer['type'] == 'convsample':
+				previous_deltas = previous_deltas.reshape(target_layer['k'], target_layer['o'], target_layer['o'])
+				delta_bp_pool = numpy.zeros((target_layer['k'], target_layer['conv_count'], target_layer['conv_count'])) # back-propogate error across pooling layer
+				for k in xrange(target_layer['k']):
+					delta_bp_pool[k] = numpy.kron(previous_deltas[k], numpy.ones((target_layer['p'], target_layer['p'])) / target_layer['p'] / target_layer['p'])
+				delta_bp_conv = numpy.multiply(delta_bp_pool, util.sigmoid_d2(activations[l + 1]['extra']))
+
+				# bias derivative from delta_bp_pool sum per filter
+				bias_d = numpy.zeros(target_layer['k'])
+				for k in xrange(target_layer['k']):
+					bias_d[k] = numpy.sum(delta_bp_pool[k])
+				bias_derivatives.append(bias_d)
+
+				# weight derivative
+				weight_d = numpy.zeros((target_layer['k'], target_layer['n'], target_layer['n']))
+				for k in xrange(target_layer['k']):
+					weight_d[k] = scipy.signal.convolve2d(activations[l]['activations'].reshape(target_layer['m'], target_layer['m']), numpy.rot90(delta_bp_conv[k], 2), 'valid')
+				weight_derivatives.append(weight_d)
 
 		return (weight_derivatives, bias_derivatives)
 
@@ -71,25 +153,25 @@ class BasicNetwork:
 		weight_d_sum = []
 		bias_d_sum = []
 
-		for l in xrange(len(self.weights)):
-			weight_d_sum.append(numpy.zeros(self.weights[l].shape))
-			bias_d_sum.append(numpy.zeros(self.bias[l].shape))
+		for layer in self.layers[1:]:
+			weight_d_sum.append(numpy.zeros(layer['weights'].shape))
+			bias_d_sum.append(numpy.zeros(layer['bias'].shape))
 
 		# sum over each data point
 		for i in xrange(len(x)):
 			weight_d_i, bias_d_i = self.backward(x[i], y[i])
 
-			for l in xrange(len(self.weights)):
+			for l in xrange(self.nlayers - 1):
 				weight_d_sum[l] += weight_d_i[l]
 				bias_d_sum[l] += bias_d_i[l]
 
 		# update parameters
-		for l in xrange(len(self.weights)):
-			weight_update = numpy.multiply(1 / float(len(x)), weight_d_sum[l]) + weight_decay * self.weights[l]
-			self.weights[l] -= learning_rate * weight_update
+		for l in xrange(self.nlayers - 1):
+			weight_update = numpy.multiply(1 / float(len(x)), weight_d_sum[l]) + weight_decay * self.layers[l + 1]['weights']
+			self.layers[l + 1]['weights'] -= learning_rate * weight_update
 
 			bias_update = numpy.multiply(1 / float(len(x)), bias_d_sum[l])
-			self.bias[l] -= learning_rate * bias_update
+			self.layers[l + 1]['bias'] -= learning_rate * bias_update
 
 	def gradient(self, x, y, it = 1000, learning_rate = 5.0, weight_decay = 0.):
 		for i in xrange(it):
@@ -97,16 +179,23 @@ class BasicNetwork:
 			self.gradient_iteration(x, y, learning_rate, weight_decay)
 
 import random
-network = BasicNetwork((2, 2, 1))
+network = BasicNetwork((100, {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}, 1))
+# {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}
 x = []
 y = []
-for i in xrange(100):
-	x_i = [random.random(), random.random()]
+for i in xrange(2000):
+	x_i = numpy.random.rand(100).tolist()
 	x.append(x_i)
-	if x_i[0] > 0.5 and x_i[1] > 0.5: y.append(0.999)
+	if x_i[0] > 0.5 and x_i[11] > 0.5 and x_i[22] > 0.5 and x_i[33] > 0.5 and x_i[44] > 0.5: y.append(0.999)
 	else: y.append(0)
 
-network.gradient(x, y)
-print network.forward([0.4, 0.5])
-print network.forward([0.1, 0.3])
-print network.forward([0.7, 0.8])
+#network.gradient(x, y, 5)
+#print network.layers
+
+for i in xrange(5):
+	t = numpy.random.rand(100).tolist()
+	print t[0], t[11], t[22], t[33], t[44], network.forward(t)
+
+for i in xrange(300):
+	t = numpy.random.rand(100).tolist()
+	if t[0] > 0.5 and t[11] > 0.5 and t[22] > 0.5 and t[33] > 0.5 and t[44] > 0.5: print t[0], t[11], t[22], t[33], t[44], network.forward(t)

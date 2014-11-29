@@ -6,3 +6,8 @@ def sigmoid(m):
 def sigmoid_d2(sigmoid_output):
 	# returns derivative of sigmoid function given the sigmoid function output
 	return sigmoid_output * (1 - sigmoid_output)
+
+def prod(x):
+	a = 1
+	for el in x: a *= el
+	return a
