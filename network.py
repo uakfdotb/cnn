@@ -33,7 +33,7 @@ class BasicNetwork:
 
 					o = conv_count / p # number of pooled regions sidelength (also output sidelength)
 
-					weights = numpy.random.rand(k * c, n, n) * 5 - 1
+					weights = numpy.random.rand(k * c, n, n) * 6 - 1
 					bias = numpy.random.rand(k * c) * 2 - 1
 					self.shape[i + 1] = k * o * o
 					self.layers.append({'type': 'convsample', 'weights': weights, 'bias': bias, 'm': m, 'c': c, 'n': n, 'k': k, 'p': p, 'conv_count': conv_count, 'o': o})
@@ -90,6 +90,7 @@ class BasicNetwork:
 
 		# execute forward propogation and store activations of each layer
 		activations = self.forward(inputs[:, 0], True)
+		cost = sum(abs(activations[self.nlayers - 1]['activations'] - desired_outputs))
 
 		# compute deltas at each layer
 		deltas_list = [None] * self.nlayers # deltas_list[0] is for input layer and remains None
@@ -143,7 +144,7 @@ class BasicNetwork:
 					weight_d[k] = scipy.signal.convolve2d(activations[l]['activations'].reshape(target_layer['m'], target_layer['m']), numpy.rot90(delta_bp_conv[k], 2), 'valid')
 				weight_derivatives.append(weight_d)
 
-		return (weight_derivatives, bias_derivatives)
+		return (weight_derivatives, bias_derivatives, cost)
 
 	def gradient_iteration(self, x, y, learning_rate = 5.0, weight_decay = 0.):
 		# x is a 2D array, each row is an input
@@ -152,6 +153,7 @@ class BasicNetwork:
 		# initialize sum of squared-error partial derivatives
 		weight_d_sum = []
 		bias_d_sum = []
+		cost_sum = 0
 
 		for layer in self.layers[1:]:
 			weight_d_sum.append(numpy.zeros(layer['weights'].shape))
@@ -159,11 +161,14 @@ class BasicNetwork:
 
 		# sum over each data point
 		for i in xrange(len(x)):
-			weight_d_i, bias_d_i = self.backward(x[i], y[i])
+			if i % 1000 == 0: print '[network] %.2f%%' % (float(i) / len(x) * 100)
+			weight_d_i, bias_d_i, cost_i = self.backward(x[i], y[i])
 
 			for l in xrange(self.nlayers - 1):
 				weight_d_sum[l] += weight_d_i[l]
 				bias_d_sum[l] += bias_d_i[l]
+
+			cost_sum += cost_i
 
 		# update parameters
 		for l in xrange(self.nlayers - 1):
@@ -173,29 +178,116 @@ class BasicNetwork:
 			bias_update = numpy.multiply(1 / float(len(x)), bias_d_sum[l])
 			self.layers[l + 1]['bias'] -= learning_rate * bias_update
 
+		return cost_sum
+
 	def gradient(self, x, y, it = 1000, learning_rate = 5.0, weight_decay = 0.):
 		for i in xrange(it):
-			print i
-			self.gradient_iteration(x, y, learning_rate, weight_decay)
+			cost = self.gradient_iteration(x, y, learning_rate, weight_decay)
+			print i, cost
 
-import random
-network = BasicNetwork((100, {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}, 1))
-# {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}
-x = []
-y = []
-for i in xrange(2000):
-	x_i = numpy.random.rand(100).tolist()
-	x.append(x_i)
-	if x_i[0] > 0.5 and x_i[11] > 0.5 and x_i[22] > 0.5 and x_i[33] > 0.5 and x_i[44] > 0.5: y.append(0.999)
-	else: y.append(0)
+	def sgd_iteration(self, x, y, iteration, weight_decay = 0.003):
+		# x is a 2D array, each row is an input
+		# y is a 2D array, each row is corresponding output
+		random_indices = numpy.random.choice(range(len(x)), 256)
+		x_batch = x[random_indices]
+		y_batch = y[random_indices]
+		learning_rate = 5. / (50. + iteration)
+		momentum = 0.5
 
-#network.gradient(x, y, 5)
-#print network.layers
+		if iteration > 20:
+			momentum = 0.95
 
-for i in xrange(5):
-	t = numpy.random.rand(100).tolist()
-	print t[0], t[11], t[22], t[33], t[44], network.forward(t)
+		# initialize sum of squared-error partial derivatives
+		weight_d_sum = []
+		bias_d_sum = []
+		cost_sum = 0
 
-for i in xrange(300):
-	t = numpy.random.rand(100).tolist()
-	if t[0] > 0.5 and t[11] > 0.5 and t[22] > 0.5 and t[33] > 0.5 and t[44] > 0.5: print t[0], t[11], t[22], t[33], t[44], network.forward(t)
+		for layer in self.layers[1:]:
+			weight_d_sum.append(numpy.zeros(layer['weights'].shape))
+			bias_d_sum.append(numpy.zeros(layer['bias'].shape))
+
+		# sum over each data point
+		for i in xrange(len(x_batch)):
+			weight_d_i, bias_d_i, cost_i = self.backward(x_batch[i], y_batch[i])
+
+			for l in xrange(self.nlayers - 1):
+				weight_d_sum[l] += weight_d_i[l]
+				bias_d_sum[l] += bias_d_i[l]
+
+			cost_sum += cost_i
+
+		for l in xrange(len(self.layers) - 1):
+			if self.layers[l + 1]['type'] != 'convsample':
+				weight_d_sum[l] /= float(len(x_batch))
+				bias_d_sum[l] /= float(len(x_batch))
+
+		# update parameters
+		for l in xrange(self.nlayers - 1):
+			self.velocity[l + 1]['weights'] = momentum * self.velocity[l + 1]['weights'] + learning_rate * (weight_d_sum[l] + weight_decay * self.layers[l + 1]['weights'])
+			self.layers[l + 1]['weights'] -= self.velocity[l + 1]['weights']
+			print learning_rate, self.velocity[l + 1]['weights']
+
+			if self.layers[l + 1]['type'] != 'convsample':
+				self.velocity[l + 1]['bias'] = momentum * self.velocity[l + 1]['bias'] + learning_rate * bias_d_sum[l]
+				self.layers[l + 1]['bias'] -= self.velocity[l + 1]['bias']
+
+		print '[network] sgd: completed iteration %d (cost=%.4f)' % (iteration, cost_sum)
+
+	def sgd(self, x, y, it = 5000, weight_decay = 0.):
+		# convert to numpy arrays
+		x = numpy.array(x, float)
+		y = numpy.array(y, float)
+
+		# initialize velocity
+		self.velocity = [None]
+		for l in xrange(self.nlayers - 1):
+			velocity_weights = numpy.zeros(self.layers[l + 1]['weights'].shape)
+			velocity_bias = numpy.zeros(self.layers[l + 1]['bias'].shape)
+			self.velocity.append({'weights': velocity_weights, 'bias': velocity_bias})
+
+		for i in xrange(it):
+			self.sgd_iteration(x, y, i, weight_decay)
+
+if __name__ == "__main__":
+	import random
+	network = BasicNetwork((100, {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}, 1))
+	# {'type': 'convsample', 'm': 10, 'c': 1, 'n': 5, 'k': 3, 'p': 3}
+	x = []
+	y = []
+	for i in xrange(2000):
+		x_i = numpy.random.rand(100) / 10
+		if random.random() < 0.5:
+			x_i[0] = random.random()
+			x_i[11] = random.random()
+			x_i[22] = random.random()
+			x_i[33] = random.random()
+			x_i[44] = random.random()
+			y.append(0.999)
+		else:
+			x_i[10] = random.random()
+			x_i[19] = random.random()
+			x_i[27] = random.random()
+			x_i[36] = random.random()
+			x_i[45] = random.random()
+			y.append(0)
+		x.append(x_i.tolist())
+
+	network.sgd(x, y, 200)
+	print network.layers
+
+	for i in xrange(30):
+		x_i = numpy.random.rand(100) / 10
+		if random.random() < 0.5:
+			x_i[0] = random.random()
+			x_i[11] = random.random()
+			x_i[22] = random.random()
+			x_i[33] = random.random()
+			x_i[44] = random.random()
+			print 'orange', network.forward(x_i)
+		else:
+			x_i[10] = random.random()
+			x_i[19] = random.random()
+			x_i[27] = random.random()
+			x_i[36] = random.random()
+			x_i[45] = random.random()
+			print 'blue', network.forward(x_i)
