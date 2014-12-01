@@ -33,10 +33,22 @@ class BasicNetwork:
 
 					o = conv_count / p # number of pooled regions sidelength (also output sidelength)
 
-					weights = numpy.random.rand(k * c, n, n) * 6 - 1
+					weights = numpy.random.rand(k * c, n, n) * 6 - 3
 					bias = numpy.random.rand(k * c) * 2 - 1
 					self.shape[i + 1] = k * o * o
 					self.layers.append({'type': 'convsample', 'weights': weights, 'bias': bias, 'm': m, 'c': c, 'n': n, 'k': k, 'p': p, 'conv_count': conv_count, 'o': o})
+				elif shape[i + 1]['type'] == 'softmax':
+					# randomly generate matrix of weights for current layer
+					# W_jk = weight of neuron k in previous layer (i) for neuron j in current layer (i+1)
+					prev_count = self.shape[i]
+					cur_count = self.shape[i + 1]['count']
+					weights = numpy.random.rand(cur_count, prev_count) * 2 - 1
+
+					# also generate a bias vector, b_j = bias for neuron j in current layer
+					bias = numpy.random.rand(cur_count, 1) * 2 - 1
+
+					self.shape[i + 1] = cur_count
+					self.layers.append({'type': 'softmax', 'weights': weights, 'bias': bias})
 			else:
 				# randomly generate matrix of weights for current layer
 				# W_jk = weight of neuron k in previous layer (i) for neuron j in current layer (i+1)
@@ -64,6 +76,14 @@ class BasicNetwork:
 				# apply sigmoid activation function
 				values = util.sigmoid(z_vector)
 				if return_activations: activations.append({'activations': values[:, 0]})
+			elif layer['type'] == 'softmax':
+				# compute the weighted sum of neuron inputs, plus bias term (for each neuron in current layer)
+				z_vector = numpy.dot(layer['weights'], values) + layer['bias']
+
+				# apply softmax
+				values = numpy.exp(z_vector - numpy.max(z_vector))
+				values = values / numpy.sum(values)
+				if return_activations: activations.append({'activations': values[:, 0]})
 			elif layer['type'] == 'convsample':
 				# carry out convolution to get convolved values
 				convolved_out = numpy.zeros((layer['k'], layer['conv_count'], layer['conv_count']))
@@ -81,7 +101,7 @@ class BasicNetwork:
 				if return_activations: activations.append({'activations': values[:, 0], 'extra': convolved_out})
 
 		if return_activations: return activations
-		else: return values[0, :]
+		else: return values[:, 0]
 
 	def backward(self, inputs, desired_outputs):
 		# inputs is a list of input layer values, desired_outputs is expected output layer values
@@ -90,17 +110,24 @@ class BasicNetwork:
 
 		# execute forward propogation and store activations of each layer
 		activations = self.forward(inputs[:, 0], True)
-		cost = sum(abs(activations[self.nlayers - 1]['activations'] - desired_outputs))
 
 		# compute deltas at each layer
 		deltas_list = [None] * self.nlayers # deltas_list[0] is for input layer and remains None
-		deltas_list[self.nlayers - 1] = numpy.multiply(activations[self.nlayers - 1]['activations'] - desired_outputs, util.sigmoid_d2(activations[self.nlayers - 1]['activations']))
+
+		if self.layers[self.nlayers - 1]['type'] == 'sigmoid':
+			cost = numpy.sum(abs(activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0]))
+			deltas_list[self.nlayers - 1] = numpy.multiply(activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0], util.sigmoid_d2(activations[self.nlayers - 1]['activations']))
+		elif self.layers[self.nlayers - 1]['type'] == 'softmax':
+			cost = -numpy.sum(numpy.multiply(desired_outputs[:, 0], numpy.log(activations[self.nlayers - 1]['activations'])))
+			deltas_list[self.nlayers - 1] = activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0]
+		else:
+			raise Exception('invalid error function type')
 
 		for l in xrange(self.nlayers - 2, 0, -1): # for each non-input layer
 			previous_deltas = deltas_list[l + 1]
 			target_layer = self.layers[l + 1]
 
-			if target_layer['type'] == 'sigmoid':
+			if target_layer['type'] == 'sigmoid' or target_layer['type'] == 'softmax':
 				sums = numpy.dot(target_layer['weights'].T, previous_deltas.reshape(util.prod(previous_deltas.shape), 1))
 				deltas_list[l] = numpy.multiply(sums.flatten(), util.sigmoid_d2(activations[l]['activations']))
 			elif target_layer['type'] == 'convsample':
@@ -122,7 +149,7 @@ class BasicNetwork:
 			previous_deltas = deltas_list[l + 1]
 			target_layer = self.layers[l + 1]
 
-			if target_layer['type'] == 'sigmoid':
+			if target_layer['type'] == 'sigmoid' or target_layer['type'] == 'softmax':
 				weight_derivatives.append(numpy.dot(previous_deltas.reshape(len(previous_deltas), 1), activations[l]['activations'].reshape(1, len(activations[l]['activations']))))
 				bias_derivatives.append(previous_deltas.reshape(len(deltas_list[l + 1]), 1))
 			elif target_layer['type'] == 'convsample':
