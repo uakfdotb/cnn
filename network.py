@@ -278,8 +278,14 @@ class BasicNetwork:
 			velocity_bias = numpy.zeros(self.layers[l + 1]['bias'].shape)
 			self.velocity.append({'weights': velocity_weights, 'bias': velocity_bias})
 
+		time_start = time.time()
+
 		for i in xrange(it):
 			self.sgd_iteration(x, y, i, weight_decay)
+
+			if time_limit is not None and time.time() - time_start > time_limit:
+				print 'stopping at iteration %d (elapsed: %d)' % (i, time.time() - time_start)
+				break
 
 if __name__ == "__main__":
 	import random
