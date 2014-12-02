@@ -1,5 +1,6 @@
 import numpy
 import scipy.signal
+import time
 import util
 
 class BasicNetwork:
@@ -207,12 +208,17 @@ class BasicNetwork:
 
 		return cost_sum
 
-	def gradient(self, x, y, it = 1000, learning_rate = 5.0, weight_decay = 0.):
+	def gradient(self, x, y, it = 1000, learning_rate = 5.0, time_limit = None, weight_decay = 0.):
+		time_start = time.time()
 		for i in xrange(it):
 			cost = self.gradient_iteration(x, y, learning_rate, weight_decay)
 			print i, cost
 
-	def sgd_iteration(self, x, y, iteration, weight_decay = 0.003):
+			if time_limit is not None and time.time() - time_start > time_limit:
+				print 'stopping at iteration %d (elapsed: %d)' % (i, time.time() - time_start)
+				break
+
+	def sgd_iteration(self, x, y, iteration, weight_decay = 0.):
 		# x is a 2D array, each row is an input
 		# y is a 2D array, each row is corresponding output
 		random_indices = numpy.random.choice(range(len(x)), 256)
@@ -260,7 +266,7 @@ class BasicNetwork:
 
 		print '[network] sgd: completed iteration %d (cost=%.4f)' % (iteration, cost_sum)
 
-	def sgd(self, x, y, it = 5000, weight_decay = 0.):
+	def sgd(self, x, y, it = 5000, time_limit = None, weight_decay = 0.):
 		# convert to numpy arrays
 		x = numpy.array(x, float)
 		y = numpy.array(y, float)
