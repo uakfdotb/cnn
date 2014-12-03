@@ -33,11 +33,50 @@ In this project, we implement a fast CPU-based CNN in Python using the \texttt{n
 
 % 3 http://yann.lecun.com/exdb/mnist/
 
-In Sections \ref{sec:convpool} and \ref{sec:cnn}, we detail convolution and pooling functions, the convolutional neural network structure and training algorithm, and our implementation. In Section \ref{sec:evalcnn}, we experiment with various neural network parameters, and in Section \ref{sec:evalfeature}, we compare with SVM-based algorithms.
+In Sections \ref{sec:neural} and \ref{sec:cnn}, we detail convolution and pooling functions, the convolutional neural network structure and training algorithm, and our implementation. In Section \ref{sec:evalcnn}, we experiment with various neural network parameters, and in Section \ref{sec:evalfeature}, we compare with SVM-based algorithms.
 
-\section{Convolution and Pooling} \label{sec:convpool}
+\section{Neural networks} \label{sec:neural}
+
+An artificial neural network (ANN) consist of neuron units that, when composed in a layered network, compute some output function from an input vector $y = h(x)$. Each neuron has a specific set of input values (which may be from the input vector of the network, or from other neurons) and a single output. The output is generally computed as $n_{w, b}(z) = f(w \cdot z + b)$ for some \emph{activation function} $f$, weight vector $w$, and bias parameter $b$. The sigmoid function is often used as the activation function, i.e. $f(l) = \frac{1}{1+e^{-l}}$, as it mimics the hard threshold activation pattern of a biological neuron.
+
+Neurons are connected to form a neural network. Typically, the network is composed of layers of neurons, where neurons in the first layer accept inputs from the input vector $x$, and neurons in each following layer take inputs from the outputs of the neurons in the preceding layer. Then, the network output vector $y$ consists of the outputs from neurons in the last layer of the network. In fully connected neural networks, a neuron takes inputs from every neuron in the previous layer.
+
+Forward propogation refers to the process of propogating some input vector $x$ through each layer of the neural network to compute $y = h(x)$. In a fully connected neural network, this can be done using efficient matrix operations (which can take advantage of fast matrix libraries such as \texttt{numpy}). Let $Z_l$ be the output vector of the $l$th neural network layer (where $Z_0 = x$) and $n_{li}$ be the $i$th neuron in layer $l$; then, $Z_{l+1} = f(W^{\text{T}} Z_l + B)$ where $W_{ij}$ is the weight from $n_{li}$ to $n_{l+1,j}$ and $B_j$ is the bias parameter for neuron $n_{l+1,j}$.
+
+Neural networks can be trained using back propogation. At a high level, we compute a cost function on the outputs from the neural network given some input and desired output, and propogate the error (in the form of partial derivatives of the cost) starting at the last layer to the first layer. These error terms are then used to compute the derivative with respect to specific weight and bias parameters, which can then be updated via gradient descent.
+
+\subsection{ANN for multi-label classification}
+
+Artificial neural networks are often used for multi-label classification. However, the sigmoid activation function is not well suited for this purpose, where we want to assign exactly one label $c$ for each input vector $x$. Instead, we use \emph{softmax activation function}, defined as
+
+$$f(L, i) = \frac{e^{L_i}}{\sum_j e^{L_j}}$$
+
+Here, $L$ is a vector containing inputs to the activation function for each neuron in the softmax layer. For back propogation, the cost function given a desired output vector $o$ is
+
+$$E = -\sum_i o_i \text{log}(y_i)$$
+
+% http://www.willamette.edu/~gorr/classes/cs449/classify.html
+
+\subsection{Stochastic gradient descent}
+
+In normal gradient descent neural network training, we update weights based on performing averaging derivatives from back propogation across all training samples. Stochastic gradient descent instead randomly selects mini-batches of a predetermined size from the training samples on each iteration and updates based on the selected samples (the batch size is generally selected to yield optimal performance with matrix libraries, although in our implementation we perform back propogation separately for each sample). This increases solution sparsity, as well as convergence speed.
+
+We implement one variation of stochastic gradient descent that significantly reduces training time in many cases. Rather than update weights directly from the computed gradient $\Delta$, we apply a momentum that retains gradients from previous iterations. For a training rate $\alpha$ and momentum $m$, we update parameters $\theta$ as
+
+% http://ufldl.stanford.edu/tutorial/supervised/OptimizationStochasticGradientDescent/
+
+$$v = mv + \alpha \Delta \\
+\theta = \theta - v$$
 
 \section{Convolutional neural networks} \label{sec:cnn}
+
+Images, along with many other data types, exhibit strong local patterns that need to be identified in order to correctly classify images. Fully connected neural networks may ignore these patterns, or training them to identify local patterns will take a significant number of iterations. Convolutional neural networks take an alternate approach, where the localized structure is directly encoded into the structure of the neural network.
+
+\subsection{Convolution}
+
+\subsection{Pooling}
+
+\subsection{Network}
 
 \section{CNN evaluation} \label{sec:evalcnn}
 
