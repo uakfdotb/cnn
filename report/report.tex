@@ -76,13 +76,31 @@ Images, along with many other data types, exhibit strong local patterns that nee
 
 Images can often be hierarchically broken down into features and sub-features that support image recognition. For example, a flower may contain a stem and a petal, each of which consist of edges at various positions and angles. Additionally, these features may exist at various locations in the image: if an image is shifted in one direction, an image recognition algorithm should still be able to classify it in the same way.
 
+The idea behind convolutional layers for image recognition is that a feature can be represented as an $n$ by $n$ \emph{filter}, and then convolved two-dimensionally with the $m$ by $m$ input (which in this case would be an image). If regions of the input match up with the filter, then elements of the convolution output corresponding to those regions will generally take higher values. The output from the convolution is added with a bias term and passed through an activation function. Notably, each component of the convolution can be modeled as a neuron: the neuron takes inputs from a sub-region, multiplies the input by a weight matrix (the filter), and then applies the activation function; besides the sparsely connected input, the only other difference is that we require the weight matrix to be the same across multiple neurons. This achieves the local patterns property that we desire, since the filter is restricted to only consider sub-regions of the input, while still incorporating the weights and bias components of other neurons.
+
+In each convolutional layer, we have $k$ filters, each an $n$ by $n$ matrix. Then, for an $m$ by $m$ input, we get a $k$ by $(m - n + 1)$ by $(m - n + 1)$ output.
+
 \subsection{Pooling}
+
+Pooling layers apply an aggregate function (typically either max or mean) on non-overlapping regions of the output from convolutional layers (this is done separately for each filter). These regions are often equal in size; so if the output from the convolutional layer is 30 by 30, the pooling layer may pool across each of the four 15 by 15 regions.
+
+Pooling accomplishes two purposes. First, we reduce the amount of data that later layers need to consider, speeding up training and reducing overfitting. Second, we get a degree of translation invariance. If the input is shifted slightly, the result after pooling will still be similar. This is desirable since generally image recognition classes shouldn't change under basic transforms.
 
 \subsection{Network}
 
+Convolution and pooling can be used in isolation, without incorporation in a convolutional neural network. In that case, an autoencoder is typically used to train the filters, where the goal is to have the output layer match the input layer despite a smaller number of neurons in intermediate layers. The trained filters can then be used to extract features from both training and testing data, and then fed into a classifier.
+
+Convolutional neural networks present a more interesting case, where the convolution and pooling operations are combined with classification into a single structure that can be trained in one process. Typical convolutional neural networks consist of one to three convolutional layers followed by fully connected hidden layers; back propogation is carried out across the entire network. When there are several convolutional layers, the first convolutional layer often becomes used by the network as an edge detector, while later convolutional layers in the network detect more and more complex features; for simple datasets, a single convolutional layer can be applied to directly identify features. The hidden layers use final pooling outputs to eventually classify the image.
+
 \section{CNN evaluation} \label{sec:evalcnn}
 
-We implement a convolutional neural network in Python using the \texttt{}
+We implement a convolutional neural network in Python using the \texttt{numpy} package, which provides fast scientific computing operations. We evaluate its performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
+
+\subsection{MNIST dataset}
+
+The Mixed National Institute of Standards and Technology (MNIST) dataset contains sixty thousand training images and ten thousand testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged.
+
+Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
 
 \section{Comparison with SVM-based recognition} \label{sec:evalfeature}
 
