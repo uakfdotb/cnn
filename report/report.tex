@@ -1,4 +1,4 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[12pt,twocolumn]{article}
 \title{Convolutional Neural Networks for Classifying Handwritten Digits}
 \date{December 5, 2014}
 \author{
@@ -70,9 +70,13 @@ $$\theta = \theta - v$$
 
 \section{Convolutional neural networks} \label{sec:cnn}
 
-Images, along with many other data types, exhibit strong local patterns that need to be identified in order to correctly classify images. Fully connected neural networks may ignore these patterns, or training them to identify local patterns will take a significant number of iterations. Convolutional neural networks take an alternate approach, where the localized structure is directly encoded into the structure of the neural network.
+Images, along with many other data types, exhibit strong local patterns that need to be identified in order to correctly classify images. Fully connected neural networks may ignore these patterns, or training them to identify local patterns will take a significant number of iterations. Convolutional neural networks take an alternate approach, where the localized structure is directly encoded into the structure of the neural network. In this section, we discuss the functionality of convolution and pooling layers, and strategies of incorporating them in neural networks.
 
 \subsection{Convolution}
+
+Images can often be hierarchically broken down into features and sub-features that support image recognition. For example, a flower may contain a stem and a petal, each of which consist of edges at various positions and angles. Additionally, these features may exist at various locations in the image: if a photograph is shifted in one direction, an image recognition algorithm should still be able to classify it in the same way.
+
+
 
 \subsection{Pooling}
 
