@@ -74,9 +74,7 @@ Images, along with many other data types, exhibit strong local patterns that nee
 
 \subsection{Convolution}
 
-Images can often be hierarchically broken down into features and sub-features that support image recognition. For example, a flower may contain a stem and a petal, each of which consist of edges at various positions and angles. Additionally, these features may exist at various locations in the image: if a photograph is shifted in one direction, an image recognition algorithm should still be able to classify it in the same way.
-
-
+Images can often be hierarchically broken down into features and sub-features that support image recognition. For example, a flower may contain a stem and a petal, each of which consist of edges at various positions and angles. Additionally, these features may exist at various locations in the image: if an image is shifted in one direction, an image recognition algorithm should still be able to classify it in the same way.
 
 \subsection{Pooling}
 
@@ -84,8 +82,12 @@ Images can often be hierarchically broken down into features and sub-features th
 
 \section{CNN evaluation} \label{sec:evalcnn}
 
+We implement a convolutional neural network in Python using the \texttt{}
+
 \section{Comparison with SVM-based recognition} \label{sec:evalfeature}
 
 \section{Conclusion}
+
+% future work: dropout
 
 \end{document}
