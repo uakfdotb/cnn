@@ -22,6 +22,10 @@
 
 \maketitle
 
+\begin{abstract}
+In this project, we implement a CPU-based convolutional neural network (CNN) library in Python, using the \texttt{numpy} library for fast array operations. We evaluate CNN performance in terms of classification accuracy and training time on the MNIST database under a wide range of network parameters, and compare CNN to feature extraction approaches such as HOG. We find that CNN is able to achieve much lower misclassification rate, but also requires significantly more time for training of features.
+\end{abstract}
+
 \section{Introduction} \label{sec:introduction}
 
 Image recognition algorithms have become pervasive: on Google Maps Street View, image recognition protects privacy by automatically blurring faces and license plate numbers \cite{streetview}; robots use object recognition to autonomously move or assemble structures; meanwhile, individuals routinely employ optical character recognition for scanning documents and facial recognition for labeling photographs. Over the last decade, image recognition approaches have developed dramatically. Initially, feature extraction techniques such as HOG and FAST were typically combined with support vector machine (SVM) classifiers, with research often focusing on selection of SVM kernels and defining features for specific image types. Recently, though, neural networks have received renewed attention and achieved high classification performance.
