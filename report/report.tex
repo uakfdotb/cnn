@@ -95,17 +95,17 @@ Convolution and pooling can be used in isolation, without incorporation in a con
 
 Convolutional neural networks present a more interesting case, where the convolution and pooling operations are combined with classification into a single structure that can be trained in one process. Typical convolutional neural networks consist of one to three convolutional layers followed by fully connected hidden layers; back propogation is carried out across the entire network. When there are several convolutional layers, the first convolutional layer often is used by the network as an edge detector (this determination happens from training alone, without any manual specification other than the layer sizes), while later convolutional layers in the network detect more and more complex features; for simple datasets, a single convolutional layer can be applied to directly identify features. The hidden layers use final pooling outputs to eventually classify the image.
 
-\section{CNN evaluation} \label{sec:evalcnn}
+\section{Experimental setup} \label{sec:evalcnn}
 
 We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. We evaluate its performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
 
-\subsection{MNIST dataset}
+The Mixed National Institute of Standards and Technology (MNIST) dataset contains sixty thousand training images and ten thousand testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
 
-The Mixed National Institute of Standards and Technology (MNIST) dataset contains sixty thousand training images and ten thousand testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged.
+For our experimentation, we use a basic default setting of the neural network, and then adjust parameters of it to identify patterns in the change in performance, such as test error rate and average time taken to run an iteration. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2. The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between).
 
-Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
+\section{CNN Evaluation}
 
-There are numerous ways to implement the neural net. In our actual implementation, we use a basic default setting of the neural net, and then adjust parameters of it to look at the change to its performances, such as test error rate and average time taken to run an iteration. In our implementation, the default setting is using 64 filters of size 13 by 13, a pooling layer of size 2 by 2. The layer after the pooling stage consists of 256 neurons, which will then be directly and completely connected to the final output layer consiting of 10 neurons, i.e. no more layers between the post-pooling layer and final output layer.
+In this section, we show and analyze CNN performance under various network parameters tested in our experiment.
 
 \subsection{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
 
