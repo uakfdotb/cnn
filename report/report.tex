@@ -91,51 +91,75 @@ Convolution and pooling can be used in isolation, without incorporation in a con
 
 Convolutional neural networks present a more interesting case, where the convolution and pooling operations are combined with classification into a single structure that can be trained in one process. Typical convolutional neural networks consist of one to three convolutional layers followed by fully connected hidden layers; back propogation is carried out across the entire network. When there are several convolutional layers, the first convolutional layer often is used by the network as an edge detector (this determination happens from training alone, without any manual specification other than the layer sizes), while later convolutional layers in the network detect more and more complex features; for simple datasets, a single convolutional layer can be applied to directly identify features. The hidden layers use final pooling outputs to eventually classify the image.
 
-\section{Implementation, Experimental setup And Data Set} \label{sec:evalcnn}
+\section{Experimental setup} \label{sec:evalcnn}
 
-We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. In Python, we define a network class which has attributes that represent the number of layers and the number of neurons in each layer. Our code can perform either ``softmax'' or ``sigmoid'' function for the output of each neuron. Our code initializes all the weights to be random and uniformly distributed within [0,1), which serves the purpose of symmetric breaking. The network class class has a ``forward propagation'' function and a ``backward propagation'' function. The ``forward propagation'' function just involves looping over all the neurons, combining the output of their values to the neurons in the final output layer. In backward propagation, our code first averages the derivatives across a subset of the data (Stochastic Gradient Descent) and this is the step that is most computationally expensive. After that, we update the weights simultaneously by applying the momentum formula in section \ref{subsec:SGD}. Please see appendix for more details.
+We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. Our implementation includes a \texttt{Network} class which has attributes that represent the number of layers and the number of neurons in each layer. Our code can use either ``softmax'' or ``sigmoid'' activation functions of neurons in the fully connected layers of the network. Our code initializes weights to be random and uniformly distributed within [-1,1), which serves the purpose of breaking symmetry so that filters train in different directions. The network class has separate functions to support forward propogation and backward propogation. For forward propagation, it simply involves looping over all the neurons, computing the output of the current layer from the output of the previous layer's values; the output from the final layer is returned. In backward propagation, our code comptues and averages the derivatives across a subset of the data (the subset is chosen randomly per stochastic gradient descent algorithm); this step is the most computationally expensive. After that, we update the weights simultaneously by applying the momentum formula in section \ref{subsec:SGD}. Please see appendix for more details on our implementation.
 
-We also evaluate our neural net's performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
+We evaluate our neural net's performance on the Mixed National Institute of Standards and Technology (MNIST) dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function. The MNIST dataset contains 60,000 training images and 10,000 testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
 
-The Mixed National Institute of Standards and Technology (MNIST) dataset contains 60,000 training images and 10,000 testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
-
-For our experimentation, we use a basic default setting of the neural network, and then adjust parameters of it to identify patterns in the change in performance, such as test error rate and average time taken to run an iteration. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2. The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between).
+For our experimentation, we use a basic default setting of the neural network, and then adjust network parameters to identify patterns in the change in performance, such as test error rate and average per-iteration runtime. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2 (meaning we have four pooling blocks, each pooling over an 8 by 8 region of the convolution output). The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between); each neuron corresponds to one digit, and the maximum value over the neurons is the classification output.
 
 \section{CNN Evaluation}
 
-In this section, we show and analyze CNN performance under various network parameters tested in our experiment.
-
-\subsection{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
-
-To start, we explore how different configurations of the neural nets after the pooling layer affects the performance of our neural net. We can see that generally they all have the same average iteration time. As we go down the table, the model gets more complex, and the test error first goes down and the goes up, suggesting overfitting for the last model.
+In this section, we show and analyze CNN performance under various network parameters tested in our experiment. Each parameter takes the default value in Table \ref{table:evaldefault} when unspecified in the subsections below.
 
 \begin{table}
 \begin{center}
 \begin{tabular}{| c | c | c |}
 \hline
-Hidden Layer & Test & Time of One \\
-Configuration & Error & Iteration / Sec \\
+Parameter & Value \\
 \hline
-No hidden layer & 0.0269 & 30.48 \\
+Filter sidelength $n$ & 13 \\
 \hline
-10-neuron hidden layer & 0.0173 & 30.80 \\
+Number of filters $k$ & 64 \\
 \hline
-16-neuron hidden layer & 0.0174 & 30.66 \\
+Pooling blocks & 2 by 2 \\
 \hline
-32-neuron hidden layer & 0.0181 & 30.56 \\
+Output layer activation & Softmax \\
 \hline
-32-neuron followed by & 0.0193 & 30.43 \\
+Training algorithm & SGD \\
+\hline
+Training duration & 10 hours \\
+\hline
+\end{tabular}
+\end{center}
+\label{table:evaldefault}
+\caption{Default parameter values used for performance evaluation.}
+\end{table}
+
+\subsection{CNN performance under different network configurations}
+
+To start, we explore how different configurations of the neural network after the convolution and pooling layers affect the performance of our CNN. For each configuration, we trained the network with the 60,000 training samples, and then tested on the 10,000 test samples from MNIST dataset. In each case we train the network for 10 hours.
+
+Table \ref{table:change_in_neurons_in_hidden_layer} shows that iteration time remains mostly the same. As we go down the table, the model gets more complex, and the test error first goes down and then goes up, suggesting overfitting for the last model.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{| c | c | c |}
+\hline
+Hidden layer & Test & Time for one \\
+configuration & error & iteration (sec) \\
+\hline
+No hidden layer & 2.69\% & 30.48 \\
+\hline
+10-neuron hidden layer & 1.73\% & 30.80 \\
+\hline
+16-neuron hidden layer & 1.74\% & 30.66 \\
+\hline
+32-neuron hidden layer & 1.81\% & 30.56 \\
+\hline
+32-neuron followed by & 1.93\% & 30.43 \\
 16-neuron hidden layers & & \\
 \hline
 \end{tabular}
 \end{center}
 \label{table:change_in_neurons_in_hidden_layer}
-\caption{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
+\caption{Test error and per-iteration runtime for CNN training with various network configurations.}
 \end{table}
 
-\subsection{Performance of Our Neural Nets Using Different Filter Size (Default Setting)}
+\subsection{Performance with variable filter size}
 
-Firstly we investigate how filter size affects the performance of our neural net. We tried out various different filter sizes ranging from ``5 by 5'' to ``15 by 15''. For each of the filter size, we tested in our neural nets, using the 60,000 training data, and then tested on the 10,000 testing data, with both training and testing data from MNIST. Our neural net is run with the each filter size for 10 hours on the training data.
+We next investigate how filter size affects the performance of our neural network. We tried out various filter sizes ranging from $n = 5$ to $n = 15$ (for filter sidelength $n$), again training for ten hours.
 
 The results are shown in Figures \ref{fig:test_error_vs_filter_size} and \ref{fig:iter_time_vs_filter_size}. The horizontal axis of both figures show the filter size. For instance, when the filter size is ``7 by 7'', it achieves an test error rate at about 3.5\% and average iteration time takes about 20 seconds.
 
@@ -145,19 +169,19 @@ The test error rate generally decreases and then increases. This is probably bec
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/test_error_vs_filter_size}
-\caption{Test Error Against Filter Size (Default Setting)}
+\caption{Test error against filter size.}
 \label{fig:test_error_vs_filter_size}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_filter_size}
-\caption{Time Per Iteration Against Filter Size (Default Setting)}
+\caption{Per-iteration runtime against filter size.}
 \label{fig:iter_time_vs_filter_size}
 \end{figure}
 
-\subsection{Performance of Our Neural Nets Using Different Number of Filters (Default Setting)}
+\subsection{Performance with variable filter count}
 
-Secondly we investigate how changing the number of filters affects the performance of our neural net. Note that for all experiments in this subsection, we use the default setting of filter size ``13 by 13''. The number of filters we explored ranges from 8 to 256. Again, our neural net is run with the each filter size for 10 hours on the training data from MNIST.
+We then investigate how changing the number of filters affects CNN performance. Note that for all experiments in this subsection, we use the default setting of filter size ``13 by 13''. The number of filters we explored ranges from 8 to 256. Again, we train the network for each filter size for 10 hours.
 
 The results are shown in Figures \ref{fig:test_error_vs_no_of_filters} and \ref{fig:iter_time_vs_no_of_filters}. The horizontal axis of both figures show the the number of filters used, and is plotted in log scales. For instance, when the number of filters is 16, it achieves an test error rate at about 3\% and average iteration time takes about 10 seconds.
 
@@ -168,36 +192,36 @@ The test error rate generally decreases and then increases. This is probably due
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/test_error_vs_no_of_filters}
-\caption{Test Error Against Number of Filters (Default Setting)}
+\caption{Test error against number of filters.}
 \label{fig:test_error_vs_no_of_filters}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_no_of_filters}
-\caption{Time Per Iteration Against Number of Filters (Default Setting)}
+\caption{Per-iteration runtime against number of filters.}
 \label{fig:iter_time_vs_no_of_filters}
 \end{figure}
 
-\subsection{Performance of Our Neural Nets Using Different Pooling Sizes (Default Setting)}
+\subsection{Performance with variable pooling size}
 
-Next we investigate how different pooling sizes used affects the performance of our neural net. Again that for all experiments in this subsection, we use the default setting of 64 filters of size ``13 by 13''. The number of filters we explored ranges from the extreme case ``1 by 1'' (pool all things into one) to ``6 by 6''.
+Next we investigate how different pooling sizes affect performance. The number of filters we explored ranges from the extreme case ``1 by 1'' (a single pooling block that averages over the entire output matrix from the convolution operation) to ``6 by 6''.
 
-The results are shown in Figures \ref{fig:test_error_vs_pooling_size} and \ref{fig:iter_time_vs_pooling_size}. The horizontal axis of both figures show the the dimension of the pooling size used. For instance, when the pooling size is 4 by 4, it achieves an test error rate at about 4.2\% and average iteration time takes about 34 seconds.
+The results are shown in Figures \ref{fig:test_error_vs_pooling_size} and \ref{fig:iter_time_vs_pooling_size}. The horizontal axis of both figures show the the dimension of the pooling size used. For instance, when the pooling size is 4 by 4, it achieves a test error rate at about 4.2\% and average iteration time takes about 34 seconds.
 
-From the results, we can see that as the number of pooling size increases, the average iteration time general increases, and the relationship is almost linear. This is as expected, because the fewer number of filters in the model, the less complex the model is, and hence the fewer parameters the model needs to update. For instance, the model that with pooling sizes of ``6 by 6'' have many more parameters (weights, features, etc.) to update compared to the model with pooling size ``1 by 1'', and this shows up in Figure \ref{fig:iter_time_vs_pooling_size}.
+From the results, we can see that as the number of pooling size increases, the average iteration time generally increases, with an almost linear relationship. This is as expected, because the fewer number of pooling blocks in the model, the less complex the model is, and hence the fewer parameters the model needs to update. For instance, the model that with pooling sizes of ``6 by 6'' have many more parameters (specifically weight and bias terms between the pooling layer and the output layer, which are fully connected) to update compared to the model with pooling size ``1 by 1'', and this shows up in Figure \ref{fig:iter_time_vs_pooling_size}.
 
-Again, The test error rate shows a ``U-shape'' trend, and the reason is the same as that in the previous subsection: models with low number of filters underfit the training data, while models with high number of filters tends to overfit. From our experiment, the optimal pooling size is ``2 by 2''.
+Again, the test error rate shows a ``U-shape'' trend, and the reason is similar to that in the previous subsection: models with low number of pooling blocks underfit the training data, while models with high number of poloing blocks tend to overfit. From our experiment, the optimal pooling size is ``2 by 2''.
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/test_error_vs_pooling_size}
-\caption{Test Error Against Pooling Size (Default Setting)}
+\caption{Test error against pooling size.}
 \label{fig:test_error_vs_pooling_size}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_pooling_size}
-\caption{Time Per Iteration Against Pooling Size (Default Setting)}
+\caption{Per-iteration runtime against pooling size.}
 \label{fig:iter_time_vs_pooling_size}
 \end{figure}
 
@@ -213,23 +237,23 @@ Gradient descent only completed five iterations in the ten hours allocated for t
 
 \section{Comparison with HOG-feature recognition} \label{sec:evalfeature}
 
-Before deep learning technique is widely used in image recognition, various other methods were used to extract the features from the image and models were trained on these features. Examples include HOG (Histogram of Oriented Gradients)  Feature Extraction and SIFT (Scale Invariant Feature Transform) Feature Extraction. In this section, we will compare the results by our neural nets model and by HOG Feature Extraction technique + SVM, using different percentage of the 60,000 training data.
+Before deep learning techniques became widely used in image recognition, various other methods were used to extract the features from the image and models were trained on these features. Examples include histogram of oriented gradients (HOG) and scale-invariant feature transform (SIFT). In this section, we will compare the performance of our CNN implementation with the performance of using HOG with SVM classifier, using different percentages of the 60,000 training samples. We use the default parameters except we include a ten-neuron fully connected hidden layer between the pooling and output layers.
 
-Note that we have completely implemented the neural net model ourselves, but we used Matlab packages for the HOG feature extraction method. HOG divides an image into cells and computes a local histogram of gradient orientations in each cell. The histograms and normalized and grouped across block regions, and these descriptor values can then be fed into a classifier.
+We implemented the CNN library for this project, but we used MATLAB packages for the HOG feature extraction method. HOG divides an image into cells and computes a local histogram of gradient orientations in each cell. The histograms and normalized and grouped across block regions, and these descriptor values can then be fed into a classifier.
 
-The results are shown in Figures \ref{fig:hog} and \ref{fig:neural_net_percentage_data}. From the figures, we can see that the training error rate is generally lower than the testing error rate, and this is expected because our model is based on the training set. Moreover,as we used more training data, we generally got a higher training error, but a lower testing error. This is because with less training data, it is much easier to fit a model that does very well on the training set, but the same model does not generalize well to the overall data, and thus performs badly on the testing set. As the training set data increases, although we get a higher training error as it becomes increasingly harder to fit a perfect model on the training set, the testing error generally decreases. This agrees with our intuition.
+The results are shown in Figures \ref{fig:hog} and \ref{fig:neural_net_percentage_data}. From the figures, we can see that the training error rate is generally lower than the testing error rate, and this is expected because our model is based on the training set. Moreover, as we use more training data, we generally get a higher training error, but a lower testing error. This is because with less training data, it is much easier to fit a model that does very well on the training set, but the same model does not generalize well to the overall data, and thus performs badly on the testing set. As the training set data increases, although we get a higher training error as it becomes increasingly harder to fit a perfect model on the training set, the testing error generally decreases. This agrees with our intuition.
 
-Moreover, we can see that our neural net model performs much better than the HOG feature-extraction technique. At any percentage of training data, our model achieves a test error strictly less than the HOG feature-extraction technique. When all training data is used, our neural net model achieves an error rate of about 2.25 percent test error, while the HOG feature-extraction technique achieves more than 5 percent. This perhaps explains why the old feature-extraction techniques, such as HOG and SIFT, are becoming increasingly obselete today, due to the advent of deep learning..
+Moreover, we can see that our CNN performs much better than the HOG feature-extraction technique. At any percentage of training data, our model achieves a test error strictly less than the HOG feature-extraction technique. When all training data is used, our neural net model achieves an error rate of about 2.25 percent test error, while the HOG feature-extraction technique achieves more than 5 percent. This perhaps explains why the old feature-extraction techniques, such as HOG and SIFT, are becoming increasingly obselete today, due to the advent of deep learning.
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/hog}
-\caption{Training / Testing Error Using Hog Features Against Percentage of Training Data Used}
+\caption{Training and testing error using HOG features against percentage of training data used.}
 \label{fig:hog}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/neural_net_percentage_data}
-\caption{Training / Testing Error Using Our Neural Net Against Percentage of Training Data Used}
+\caption{Training and testing error of CNN against percentage of training data used.}
 \label{fig:neural_net_percentage_data}
 \end{figure}
 
