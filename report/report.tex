@@ -138,13 +138,13 @@ From the results, we can see that as filter size increases, the average iteratio
 The test error rate generally decreases and then increases. This is probably because a very low filter size has too few features, and thus cannot capture all the information from the image; while a very high filter size tends to have too many features, and thus tends to overfit the training data and, as a consequence, performs badly in test data. Another problem with high filter size model is that the training time takes longer due to more features, and thus when terminated at a fixed time (as in our experiment), it will have run much fewer iterations then the low filter size model, i.e. the number of iteration completed is not sufficient. From our experiment, the optimal filter size range is from ``9 by 9'' to ``13 by 13''.
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/test_error_vs_filter_size}
+\includegraphics[width = 0.5\textwidth]{figure/test_error_vs_filter_size}
 \caption{Test Error Against Filter Size (Default Setting)}
 \label{fig:test_error_vs_filter_size}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/iter_time_vs_filter_size}
+\includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_filter_size}
 \caption{Time Per Iteration Against Filter Size (Default Setting)}
 \label{fig:iter_time_vs_filter_size}
 \end{figure}
@@ -161,14 +161,14 @@ The test error rate generally decreases and then increases. This is probably due
 
 \begin{figure}
 \centering
-\includegraphics[width = 8cm]{figure/test_error_vs_no_of_filters}
+\includegraphics[width = 0.5\textwidth]{figure/test_error_vs_no_of_filters}
 \caption{Test Error Against Number of Filters (Default Setting)}
 \label{fig:test_error_vs_no_of_filters}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width = 8cm]{figure/iter_time_vs_no_of_filters}
+\includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_no_of_filters}
 \caption{Time Per Iteration Against Number of Filters (Default Setting)}
 \label{fig:iter_time_vs_no_of_filters}
 \end{figure}
@@ -185,13 +185,13 @@ Again, The test error rate shows a ``U-shape'' trend, and the reason is the same
 
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/test_error_vs_pooling_size}
+\includegraphics[width = 0.5\textwidth]{figure/test_error_vs_pooling_size}
 \caption{Test Error Against Pooling Size (Default Setting)}
 \label{fig:test_error_vs_pooling_size}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/iter_time_vs_pooling_size}
+\includegraphics[width = 0.5\textwidth]{figure/iter_time_vs_pooling_size}
 \caption{Time Per Iteration Against Pooling Size (Default Setting)}
 \label{fig:iter_time_vs_pooling_size}
 \end{figure}
@@ -209,13 +209,13 @@ The results are shown in figure \ref{fig:hog} and \ref{fig:neural_net_percentage
 Moreover, we can see that our neural net model performs much better than the HOG feature-extraction technique. At any percentage of training data, our model achieves a test error strictly less than the HOG feature-extraction technique. When all training data is used, our neural net model achieves an error rate of about 2.25 percent test error, while the HOG feature-extraction technique achieves more than 6 percent. This perhaps explains why the old feature-extraction techniques, such as HOG and SIFT, are becoming increasingly obselete today, due to the advent of deep learning..
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/hog}
+\includegraphics[width = 0.5\textwidth]{figure/hog}
 \caption{Training / Testing Error Using Hog Features Against Percentage of Training Data Used}
 \label{fig:hog}
 \end{figure}
 
 \begin{figure}
-\includegraphics[width = 8cm]{figure/neural_net_percentage_data}
+\includegraphics[width = 0.5\textwidth]{figure/neural_net_percentage_data}
 \caption{Training / Testing Error Using Our Neural Net Against Percentage of Training Data Used}
 \label{fig:neural_net_percentage_data}
 \end{figure}
