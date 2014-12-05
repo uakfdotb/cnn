@@ -23,7 +23,7 @@
 \maketitle
 
 \begin{abstract}
-In this project, we implement a CPU-based convolutional neural network (CNN) library in Python, using the \texttt{numpy} library for fast array operations. We evaluate CNN performance in terms of classification accuracy and training time on the MNIST database under a wide range of network parameters, and compare CNN to feature extraction approaches such as HOG. We find that CNN is able to achieve much lower misclassification rate (as low as 1.3\%), but also requires significantly more time for training of features.
+In this project, we implement a CPU-based convolutional neural network (CNN) library in Python, using the \texttt{numpy} library for fast array operations. The implementation process involves writing codes to construct the complex structure of the neural net, perform forward propagation and pooling, and perform backward propagation using Stochastic Gradient Descent. Besides the implementation, we also evaluate CNN performance in terms of classification accuracy and training time on the MNIST database under a wide range of network parameters, and compare CNN to feature extraction approaches such as HOG. We find that CNN is able to achieve much lower misclassification rate (as low as 1.3\%), but requires significantly more time for training of features.
 \end{abstract}
 
 \section{Introduction} \label{sec:introduction}
@@ -32,7 +32,7 @@ Image recognition algorithms have become pervasive: on Google Maps Street View, 
 
 Cells in the mammalian visual cortex are able to identify local patterns in the visual field \cite{website:lenet}. Convolutional neural networks (CNNs) aim to do the same through \emph{convolutional and pooling layers}. While traditional neural networks are composed of densely connected layers, where each neuron in the previous layer connects to each neuron in the next layer, convolutional layers restrict filters to be applied on local sub-regions of an input image. By training these layers through back-propogation, these filters eventually detect specific features in the image that help with classification. CNNs have achieved high image recognition accuracy on a large number of datasets [ref].
 
-In this project, we implement a fast CPU-based CNN toolkit \cite{git:cnn} in Python using the \texttt{numpy} scientific computing library, and apply it to the MNIST handwritten digits database \cite{mnist}. We evaluate the performance of various neural network parameters (including layer configuration, output layer activation function, and training algorithm) in terms of classification accuracy and training speed, and compare CNN to feature extraction approaches. We find that while CNNs require significantly more training time, they outperform other algorithms with minimal tuning of the network.
+In this project, we implement a fast CPU-based CNN toolkit \cite{git:cnn} in Python, and apply it to the MNIST handwritten digits database \cite{mnist}. We evaluate the performance of various neural network parameters (including layer configuration, output layer activation function, and training algorithm) in terms of classification accuracy and training speed, and compare CNN to feature extraction approaches. We find that while CNNs require significantly more training time, they outperform other algorithms with minimal tuning of the network.
 
 In Sections \ref{sec:neural} and \ref{sec:cnn}, we detail convolution and pooling functions, the convolutional neural network structure and training algorithm, and our implementation. In Section \ref{sec:evalcnn}, we experiment with various neural network parameters, and in Section \ref{sec:evalfeature}, we compare with SVM-based algorithms. Finally, we conclude in Section \ref{sec:conclude}.
 
@@ -58,7 +58,7 @@ $$E = -\sum_i o_i \text{log}(y_i)$$
 
 % http://www.willamette.edu/~gorr/classes/cs449/classify.html
 
-\subsection{Stochastic gradient descent}
+\subsection{Stochastic gradient descent} \label{subsec:SGD}
 
 In normal gradient descent neural network training, we iteratively update parameters (weights and bias terms) after averaging derivatives from back propogation across all training samples. However, when the training set is large, each iteration of gradient descent may take a significant amount of time to complete. Stochastic gradient descent instead randomly selects mini-batches of a predetermined size from the training samples on each iteration and updates paramaters by averaging derivatives across only the selected samples (the batch size is generally selected to yield optimal performance with matrix libraries, although in our implementation we perform back propogation separately for each sample). This increases solution sparsity as well as convergence speed.
 
@@ -95,11 +95,13 @@ Convolution and pooling can be used in isolation, without incorporation in a con
 
 Convolutional neural networks present a more interesting case, where the convolution and pooling operations are combined with classification into a single structure that can be trained in one process. Typical convolutional neural networks consist of one to three convolutional layers followed by fully connected hidden layers; back propogation is carried out across the entire network. When there are several convolutional layers, the first convolutional layer often is used by the network as an edge detector (this determination happens from training alone, without any manual specification other than the layer sizes), while later convolutional layers in the network detect more and more complex features; for simple datasets, a single convolutional layer can be applied to directly identify features. The hidden layers use final pooling outputs to eventually classify the image.
 
-\section{Experimental setup} \label{sec:evalcnn}
+\section{Implementation, Experimental setup And Data Set} \label{sec:evalcnn}
 
-We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. We evaluate its performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
+We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. In Python, we define a network class which has attributes that represent the number of layers and the number of neurons in each layer. Our code can perform either "softmax" or "sigmoid" function for the output of each neuron. Our code initializes all the weights to be random and uniformly distributed within [0,1), which serves the purpose of symmetric breaking. The network class class has a "forward propagation" function and a "backward propagation" function. The "forward propagation" function just involves looping over all the neurons, combining the output of their values to the neurons in the final output layer. In backward propagation, our code first averages the derivatives across a subset of the data (Stochastic Gradient Descent) and this is the step that is most computationally expensive. After that, we update the weights simultaneously by applying the momentum formula in section \ref{subsec:SGD}. Please see appendix for more details.
 
-The Mixed National Institute of Standards and Technology (MNIST) dataset contains sixty thousand training images and ten thousand testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
+We also evaluate our neural net's performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
+
+The Mixed National Institute of Standards and Technology (MNIST) dataset contains 60,000 training images and 10,000 testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale.
 
 For our experimentation, we use a basic default setting of the neural network, and then adjust parameters of it to identify patterns in the change in performance, such as test error rate and average time taken to run an iteration. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2. The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between).
 
@@ -238,6 +240,10 @@ Moreover, we can see that our neural net model performs much better than the HOG
 \section{Conclusion} \label{sec:conclude}
 
 % future work: dropout
+
+\section{Appendix: Sample Code}
+
+\subsection{Implementation of the Neural Net}
 
 \bibliography{report}{}
 \bibliographystyle{plain}
