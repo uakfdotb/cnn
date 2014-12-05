@@ -14,6 +14,7 @@
 \usepackage{amsmath}
 \usepackage{subcaption}
 \usepackage{cite}
+\usepackage[colorlinks]{hyperref}
 \setlength{\columnsep}{3em}
 
 \begin{document}
@@ -26,7 +27,7 @@ Image recognition algorithms have become pervasive: on Google Maps Street View, 
 
 Cells in the mammalian visual cortex are able to identify local patterns in the visual field \cite{website:lenet}. Convolutional neural networks (CNNs) aim to do the same through \emph{convolutional and pooling layers}. While traditional neural networks are composed of densely connected layers, where each neuron in the previous layer connects to each neuron in the next layer, convolutional layers restrict filters to be applied on local sub-regions of an input image. By training these layers through back-propogation, these filters eventually detect specific features in the image that help with classification. CNNs have achieved high image recognition accuracy on a large number of datasets [ref].
 
-In this project, we implement a fast CPU-based CNN toolkit in Python using the \texttt{numpy} scientific computing library, and apply it to the MNIST handwritten digits database \cite{mnist}. We evaluate the performance of various neural network parameters (including layer configuration, output layer activation function, and training algorithm) in terms of classification accuracy and training speed, and compare CNN to feature extraction approaches. We find that while CNNs require significantly more training time, they outperform other algorithms with minimal tuning of the network.
+In this project, we implement a fast CPU-based CNN toolkit \cite{git:cnn} in Python using the \texttt{numpy} scientific computing library, and apply it to the MNIST handwritten digits database \cite{mnist}. We evaluate the performance of various neural network parameters (including layer configuration, output layer activation function, and training algorithm) in terms of classification accuracy and training speed, and compare CNN to feature extraction approaches. We find that while CNNs require significantly more training time, they outperform other algorithms with minimal tuning of the network.
 
 In Sections \ref{sec:neural} and \ref{sec:cnn}, we detail convolution and pooling functions, the convolutional neural network structure and training algorithm, and our implementation. In Section \ref{sec:evalcnn}, we experiment with various neural network parameters, and in Section \ref{sec:evalfeature}, we compare with SVM-based algorithms. Finally, we conclude in Section \ref{sec:conclude}.
 
@@ -91,7 +92,7 @@ Convolutional neural networks present a more interesting case, where the convolu
 
 \section{CNN evaluation} \label{sec:evalcnn}
 
-We implement a CPU-based convolutional neural network library in Python using the \texttt{numpy} package, which provides fast scientific computing operations. We evaluate its performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
+We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. We evaluate its performance on the MNIST dataset of handwritten digits in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function.
 
 \subsection{MNIST dataset}
 
