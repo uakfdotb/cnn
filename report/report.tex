@@ -191,7 +191,6 @@ From the results, we can see that as the number of pooling size increases, the a
 
 Again, The test error rate shows a ``U-shape'' trend, and the reason is the same as that in the previous subsection: models with low number of filters underfit the training data, while models with high number of filters tends to overfit. From our experiment, the optimal pooling size is ``2 by 2''.
 
-
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/test_error_vs_pooling_size}
 \caption{Test Error Against Pooling Size (Default Setting)}
@@ -203,6 +202,14 @@ Again, The test error rate shows a ``U-shape'' trend, and the reason is the same
 \caption{Time Per Iteration Against Pooling Size (Default Setting)}
 \label{fig:iter_time_vs_pooling_size}
 \end{figure}
+
+\subsection{Other parameters}
+
+We also experiment with using sigmoid activation function in the output layer (instead of the default softmax activation function used over the other experiments), and training with conventional gradient descent rather than stochastic gradient descent (SGD).
+
+Softmax activation resulted in an error rate of 59.62\% compared to 2.69\% with the default settings for softmax activation function. This indicates that the cross-entropy cost function is critical to training convolutional neural networks for multi-label classification, otherwise multiple neurons might fire and the cost does not take into account differentiating between the size of the activation outputs.
+
+Gradient descent only completed five iterations in the ten hours allocated for training, and got an error rate of 90.2\%. This is equivalent to a random classifier, so clearly the network was not trained for long enough to have a useful structure. Stochastic gradient descent, which achieved the 2.69\% error, solves this problem by randomly taking subsets of the data during each iteration so that we can train for a higher number of iterations, even if there is greater variance in the derivatives at each iteration.
 
 \subsection{Heatmap}
 
