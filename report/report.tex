@@ -52,19 +52,15 @@ Artificial neural networks are often used for multi-label classification. Howeve
 
 $$f(L, i) = \frac{e^{L_i}}{\sum_j e^{L_j}}$$
 
-Here, $L$ is a vector containing inputs to the activation function for each neuron in the softmax layer. For back propogation, the cost function given a desired output vector $o$ is the cross-entropy error function,
+Here, $L$ is a vector containing inputs to the activation function for each neuron in the softmax layer. For back propogation, the cost function given a desired output vector $o$ is the cross-entropy error function \cite{multilabelerror},
 
 $$E = -\sum_i o_i \text{log}(y_i)$$
-
-% http://www.willamette.edu/~gorr/classes/cs449/classify.html
 
 \subsection{Stochastic gradient descent} \label{subsec:SGD}
 
 In normal gradient descent neural network training, we iteratively update parameters (weights and bias terms) after averaging derivatives from back propogation across all training samples. However, when the training set is large, each iteration of gradient descent may take a significant amount of time to complete. Stochastic gradient descent instead randomly selects mini-batches of a predetermined size from the training samples on each iteration and updates paramaters by averaging derivatives across only the selected samples (the batch size is generally selected to yield optimal performance with matrix libraries, although in our implementation we perform back propogation separately for each sample). This increases solution sparsity as well as convergence speed.
 
-We implement one variation of stochastic gradient descent that further reduces training time in many cases. Rather than updating parameters directly from the computed gradient $\nabla$, we apply a momentum that retains gradients from previous iterations. Let $v_0 = 0$ be the initial velocity. For a training rate $\alpha$ and momentum $m$, we update parameters $\theta_i$ on the $i$th iteration as
-
-% http://ufldl.stanford.edu/tutorial/supervised/OptimizationStochasticGradientDescent/
+We implement one variation of stochastic gradient descent that further reduces training time in many cases. Rather than updating parameters directly from the computed gradient $\nabla$, we apply a momentum that retains gradients from previous iterations. Let $v_0 = 0$ be the initial velocity. For a training rate $\alpha$ and momentum $m$, we update parameters $\theta_i$ on the $i$th iteration as \cite{ufldl}
 
 $$v_i = mv_{i-1} + \alpha \nabla_i$$
 $$\theta_i = \theta_{i-1} - v_i$$
