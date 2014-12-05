@@ -103,14 +103,11 @@ Each MNIST image contains a single handwritten digit (from zero to nine). The im
 
 There are numerous ways to implement the neural net. In our actual implementation, we use a basic default setting of the neural net, and then adjust parameters of it to look at the change to its performances, such as test error rate and average time taken to run an iteration. In our implementation, the default setting is using 64 filters of size 13 by 13, a pooling layer of size 2 by 2. The layer after the pooling stage consists of 256 neurons, which will then be directly and completely connected to the final output layer consiting of 10 neurons, i.e. no more layers between the post-pooling layer and final output layer.
 
-
-
 \subsection{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
 
 To start, we explore how different configurations of the neural nets after the pooling layer affects the performance of our neural net. We can see that generally they all have the same average iteration time. As we go down the table, the model gets more complex, and the test error first goes down and the goes up, suggesting overfitting for the last model.
 
 \begin{table}
-\caption{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
 \begin{center}
 \begin{tabular}{| c | c | c |}
 \hline
@@ -127,8 +124,8 @@ No hidden layer & 0.0269 & 30.48\\ \hline
 \end{tabular}
 \end{center}
 \label{table:change_in_neurons_in_hidden_layer}
+\caption{Performance of Our Neural Nets Using Different Configurations After Pooling Layer}
 \end{table}
-\FloatBarrier
 
 \subsection{Performance of Our Neural Nets Using Different Filter Size (Default Setting)}
 
@@ -141,14 +138,12 @@ From the results, we can see that as filter size increases, the average iteratio
 The test error rate generally decreases and then increases. This is probably because a very low filter size has too few features, and thus cannot capture all the information from the image; while a very high filter size tends to have too many features, and thus tends to overfit the training data and, as a consequence, performs badly in test data. Another problem with high filter size model is that the training time takes longer due to more features, and thus when terminated at a fixed time (as in our experiment), it will have run much fewer iterations then the low filter size model, i.e. the number of iteration completed is not sufficient. From our experiment, the optimal filter size range is from ``9 by 9'' to ``13 by 13''.
 
 \begin{figure}
-
 \includegraphics[width = 8cm]{figure/test_error_vs_filter_size}
 \caption{Test Error Against Filter Size (Default Setting)}
 \label{fig:test_error_vs_filter_size}
 \end{figure}
 
 \begin{figure}
-
 \includegraphics[width = 8cm]{figure/iter_time_vs_filter_size}
 \caption{Time Per Iteration Against Filter Size (Default Setting)}
 \label{fig:iter_time_vs_filter_size}
@@ -214,20 +209,16 @@ The results are shown in figure \ref{fig:hog} and \ref{fig:neural_net_percentage
 Moreover, we can see that our neural net model performs much better than the HOG feature-extraction technique. At any percentage of training data, our model achieves a test error strictly less than the HOG feature-extraction technique. When all training data is used, our neural net model achieves an error rate of about 2.25 percent test error, while the HOG feature-extraction technique achieves more than 6 percent. This perhaps explains why the old feature-extraction techniques, such as HOG and SIFT, are becoming increasingly obselete today, due to the advent of deep learning..
 
 \begin{figure}
-
 \includegraphics[width = 8cm]{figure/hog}
 \caption{Training / Testing Error Using Hog Features Against Percentage of Training Data Used}
 \label{fig:hog}
 \end{figure}
 
 \begin{figure}
-
 \includegraphics[width = 8cm]{figure/neural_net_percentage_data}
 \caption{Training / Testing Error Using Our Neural Net Against Percentage of Training Data Used}
 \label{fig:neural_net_percentage_data}
 \end{figure}
-
-\FloatBarrier
 
 \section{Conclusion} \label{sec:conclude}
 
