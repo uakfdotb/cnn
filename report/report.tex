@@ -259,7 +259,11 @@ Moreover, we can see that our CNN performs much better than the HOG feature-extr
 
 \section{Conclusion} \label{sec:conclude}
 
-% future work: dropout
+With our basic CPU-based Python convolutional neural network toolkit, we are able to achieve error rates as low as 1.3\% for certain network parameter choices. Deep learning algorithms like CNNs allow machine learning of the very features to be used for classification; this contrasts with previous approaches where feature functions are designed by humans. CNNs show that biologically inspired machine learning algorithms often can improve performance; this echoes previous work in genetic algorithms and ant colony optimization.
+
+However, CNN training did take significantly longer than feature extraction and SVM classification. Still, GPU-based CNN libraries take advantage of parallelizable sequences of matrix operations that perform very well on modern GPUs. Additionally, optimizations can be made when using stochastic gradient descent for the batch size.
+
+There were also cases where we used a CNN that was too complex (too many filters or too many network layers) and resulted in overfitting. There has been significant research in preventing CNN overfitting. One approach called ``dropout'' randomly disables half of the filters on each training iteration and yields promising performance \cite{dropout}.
 
 \section{Appendix: Sample Code}
 
