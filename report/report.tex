@@ -108,7 +108,7 @@ In this section, we show and analyze CNN performance under various network param
 \begin{tabular}{| c | c | c |}
 \hline
 Parameter & Value \\
-\hline
+\hline \hline
 Filter sidelength $n$ & 13 \\
 \hline
 Number of filters $k$ & 64 \\
@@ -123,8 +123,8 @@ Training duration & 10 hours \\
 \hline
 \end{tabular}
 \end{center}
-\label{table:evaldefault}
 \caption{Default parameter values used for performance evaluation.}
+\label{table:evaldefault}
 \end{table}
 
 \subsection{CNN performance under different network configurations}
@@ -139,7 +139,7 @@ Table \ref{table:change_in_neurons_in_hidden_layer} shows that iteration time re
 \hline
 Hidden layer & Test & Time for one \\
 configuration & error & iteration (sec) \\
-\hline
+\hline \hline
 No hidden layer & 2.69\% & 30.48 \\
 \hline
 10-neuron hidden layer & 1.73\% & 30.80 \\
@@ -153,8 +153,8 @@ No hidden layer & 2.69\% & 30.48 \\
 \hline
 \end{tabular}
 \end{center}
-\label{table:change_in_neurons_in_hidden_layer}
 \caption{Test error and per-iteration runtime for CNN training with various network configurations.}
+\label{table:change_in_neurons_in_hidden_layer}
 \end{table}
 
 \subsection{Performance with variable filter size}
