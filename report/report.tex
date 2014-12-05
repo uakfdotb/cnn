@@ -66,7 +66,7 @@ We implement one variation of stochastic gradient descent that further reduces t
 % http://ufldl.stanford.edu/tutorial/supervised/OptimizationStochasticGradientDescent/
 
 $$v_i = mv_{i-1} + \alpha \nabla_i$$
-$$\theta_i = \theta_{i-1} - v$$
+$$\theta_i = \theta_{i-1} - v_i$$
 
 Note that the training rate $\alpha$ is generally smaller in stochastic gradient descent than in conventional gradient descent because the random mini-batch selection introduces greater variance on the training process.
 
