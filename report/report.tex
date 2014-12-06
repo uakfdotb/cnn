@@ -310,7 +310,7 @@ Figure \ref{fig:filter} shows four examples convolutional filters after training
 
 \subsection{Heatmap}
 
-In the experiments above, we have evaluated the effect of varying one parameter on performance. Here, we take a step further by trying experimentations that vary two parameters simultaneously. This means for the pooling size, filter size, and filter count parameters, we keep one parameter fixed at default value, and test different pairs of the other two parameters. Due to time constraints on training, we only train each CNN for three hours. The result is presented in heat map below, with different colors showing different error rates.
+In the experiments above, we have evaluated the effect of varying one parameter on performance. Here, we take a step further by trying experimentations that vary \emph{two} parameters simultaneously. This means for the pooling size, filter size, and filter count parameters, we keep one parameter fixed at default value, and test different pairs of the other two parameters. Due to time constraints on training, we only train each CNN for three hours. The result is presented in heat map below, with different colors showing different error rates.
 
 Figures \ref{fig:ps_fs_train_heatmap} and \ref{fig:ps_fs_test_heatmap} show how varying pooling size and filter size affects the performance of our neural net model. Figure \ref{fig:ps_fs_train_heatmap} shows a heatmap of training error against pooling size and filter size, while Figure \ref{fig:ps_fs_test_heatmap} shows a heatmap of testing error against pooling size and filter size. From the results, we can see that the training error is generally smaller than the testing error, as what we have expected. Moreover, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also performs badly in the testing set. We additionally observe that the optimal neural net model has pooling size ranging from about "1 by 1" to "3 by 3", and filter size ranging from "11 by 11" to "15 by 15". This is probably because with the parameters above, the CNN training not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
 
@@ -356,13 +356,13 @@ Moreover, we can see that our CNN performs much better than the HOG feature-extr
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/hog}
-\caption{Training and testing error using HOG features against percentage of training data used.}
+\caption{Training and testing error using HOG features against percentage of training data used (misclassification percentage rate on vertical axis, percentage of training data on horizontal axis; testing error in red and training error in blue).}
 \label{fig:hog}
 \end{figure}
 
 \begin{figure}
 \includegraphics[width = 0.5\textwidth]{figure/neural_net_percentage_data}
-\caption{Training and testing error of CNN against percentage of training data used.}
+\caption{Training and testing error of CNN against percentage of training data used (misclassification percentage rate on vertical axis, percentage of training data on horizontal axis; testing error in red and training error in blue).}
 \label{fig:neural_net_percentage_data}
 \end{figure}
 
