@@ -310,6 +310,8 @@ However, CNN training did take significantly longer than feature extraction and 
 
 There were also cases where we used a CNN that was too complex (too many filters or too many network layers) and resulted in overfitting. There has been significant research in preventing CNN overfitting. One approach called ``dropout'' randomly disables half of the filters on each training iteration and yields promising performance \cite{dropout}.
 
+Another area where we did not get to investigate in greater detail is using the features from the convolutional and pooling layers to train an SVM classifier. Once we have trained the filters (and corresponding bias terms), we can remove the following layers of the CNN and simply feed the output of the pooling layer for all training and test samples into the classifier; this provides an alternative for the classification component, even though we still use convolution and pooling operations for learning features. So, a future comparison between SVM with these features and the full convolutional neural network would be interesting.
+
 \section{Appendix: Sample Code}
 
 \subsection{Implementation of the Neural Net}
