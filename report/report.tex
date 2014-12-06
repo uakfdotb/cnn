@@ -141,7 +141,7 @@ Stochastic gradient descent uses training rate $\alpha$ and momentum $m$ paramet
 
 We evaluate our neural net's performance on the Mixed National Institute of Standards and Technology (MNIST) dataset of handwritten digits \cite{mnist} in terms of overall training algorithm, network structure, number of filters, size of filters, number of pooling regions, and output layer activation function. The MNIST dataset contains 60,000 training images and 10,000 testing images. Its name comes from the NIST dataset that it is an adaptation of. In the NIST dataset, training and testing images were taken from two different sources, while in MNIST, the sources are merged. Each MNIST image contains a single handwritten digit (from zero to nine). The images are all 28 pixels by 28 pixels and grayscale. Figure \ref{fig:mnist} shows four training samples, two 4 digits and two 8 digits; since digits can be written in multiple ways and at different angles and sizes, classification is a difficult problem.
 
-For our experimentation, we use a basic default setting of the neural network, and then adjust network parameters to identify patterns in the change in performance, such as test error rate and average per-iteration runtime. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2 (meaning we have four pooling blocks, each pooling over an 8 by 8 region of the convolution output). The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between); each neuron corresponds to one digit, and the maximum value over the neurons is the classification output. Due to the long training times needed for CNN, we only show results from one trial (although we find results are relatively stable even when using stochastic gradient descent). Experiments are conducted on twenty-four thread machines with dual Intel Xeon L5640 2.27 GHz CPUs.
+For our experimentation, we use a basic default setting of the neural network, and then adjust network parameters to identify patterns in the change in performance, such as test error rate and average per-iteration runtime. Specifically, we use a default setting of 64 filters, each 13 by 13, with a pooling layer of size 2 by 2 (meaning we have four pooling blocks, each pooling over an 8 by 8 region of the convolution output). The output from the pooling stage, then, consists of 256 values, which are fully connected to a final output layer consisting of ten neurons (without additional hidden layers in between); each output neuron corresponds to one digit, and the maximum value over the neurons is the classification output. Due to the long training times needed for CNN, we only show results from one trial (although we find results are relatively stable even when using stochastic gradient descent). Experiments are conducted on twenty-four thread machines with dual Intel Xeon L5640 2.27 GHz CPUs.
 
 \section{CNN Evaluation} \label{sec:evalcnn}
 
@@ -310,37 +310,37 @@ Figure \ref{fig:filter} shows four examples convolutional filters after training
 
 \subsection{Heatmap}
 
-In our previous subsections, we have investigated how changing each of filter size, filter count, or pooling size affects the performance of our neural net. We take a step further, by trying experimentations that vary TWO of the above parameters mentioned above at the same time. This means for the three parameters mentioned above, we keep one of them fixed at default value, and test different pairs of the other two parameters. However, due to the slow running time of our neural net model, we have to terminate the algorithm in 3 hours for every pair of the varying parameters. The result is presented in heat map below, with different colors showing different error rate.
+In the experiments above, we have evaluated the effect of varying one parameter on performance. Here, we take a step further by trying experimentations that vary two parameters simultaneously. This means for the pooling size, filter size, and filter count parameters, we keep one parameter fixed at default value, and test different pairs of the other two parameters. Due to time constraints on training, we only train each CNN for three hours. The result is presented in heat map below, with different colors showing different error rates.
 
-Figure \ref{fig:ps_fs_train_heatmap} and \ref{fig:ps_fs_test_heatmap} both show how varying pooling size and filter size affects the performance of our neural net model. Figure \ref{fig:ps_fs_train_heatmap} shows a heatmap of training error against pooling size and filter size, while figure \ref{fig:ps_fs_test_heatmap} shows a heatmap of testing error against pooling size and filter size. From the results, we can see that the training error is generally smaller than the testing error, as what we have expected. Moreover, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also performs badly in the testing set. Moreover, we observe that the optimal neural net model has pooling size ranging from about "1 by 1" to "3 by 3", and filter size ranging from "11 by 11" to "15 by 15". This is probably because with the parameters above, the neural net model not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
+Figures \ref{fig:ps_fs_train_heatmap} and \ref{fig:ps_fs_test_heatmap} show how varying pooling size and filter size affects the performance of our neural net model. Figure \ref{fig:ps_fs_train_heatmap} shows a heatmap of training error against pooling size and filter size, while Figure \ref{fig:ps_fs_test_heatmap} shows a heatmap of testing error against pooling size and filter size. From the results, we can see that the training error is generally smaller than the testing error, as what we have expected. Moreover, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also performs badly in the testing set. We additionally observe that the optimal neural net model has pooling size ranging from about "1 by 1" to "3 by 3", and filter size ranging from "11 by 11" to "15 by 15". This is probably because with the parameters above, the CNN training not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
 
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/ps_fs_train_heatmap}
-\caption{Heatmap of Training Error Against Pooling Size and Filter Size}
+\caption{Heatmap of training error against pooling size and filter size.}
 \label{fig:ps_fs_train_heatmap}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/ps_fs_test_heatmap}
-\caption{Heatmap of Testing Error Against Pooling Size and Filter Size}
+\caption{Heatmap of testing error against pooling size and filter size.}
 \label{fig:ps_fs_test_heatmap}
 \end{figure}
 
-Figure \ref{fig:fs_fc_train_heatmap} and \ref{fig:fs_fc_test_heatmap} both show how varying filter count and filter size affects the performance of our neural net model. Figure \ref{fig:fs_fc_train_heatmap}  shows a heatmap of training error against filter count and filter size, while figure \ref{fig:fs_fc_test_heatmap} shows a heatmap of testing error against filter count size and filter size. Agaiin from the heat maps, we can draw conclusions that the training error is generally smaller than the testing error, as what we have expected. Similarly, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also tends to perform badly in the testing set. Moreover, we observe that the optimal neural net model has filter count ranging from about 8 to 32, and filter size ranging from "9 by 9" to "17 by 17". Similarly, this is probably because with the parameters above, the neural net model not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
+Figures \ref{fig:fs_fc_train_heatmap} and \ref{fig:fs_fc_test_heatmap} show how varying filter count and filter size affects the performance of our neural net model. Figure \ref{fig:fs_fc_train_heatmap}  shows a heatmap of training error against filter count and filter size, while Figure \ref{fig:fs_fc_test_heatmap} shows a heatmap of testing error against filter count size and filter size. From the heat maps, we again conclude that the training error is generally smaller than the testing error, and that there is a strong correlation between training error and testing error. We observe that the optimal neural net model has filter count ranging from about 8 to 32, and filter size ranging from "9 by 9" to "17 by 17". Similar to with pooling size and filter size, this is probably because with these parameters, the neural net model both trains faster and has sufficient complexity.
 
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/fs_fc_train_heatmap}
-\caption{Heatmap of Training Error Against Filter Size and No. of Filters}
+\caption{Heatmap of training error against filter size and filter count.}
 \label{fig:fs_fc_train_heatmap}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[width = 0.5\textwidth]{figure/fs_fc_test_heatmap}
-\caption{Heatmap of Testing Error Against Filter Size and No. of Filters}
+\caption{Heatmap of training error against filter size and filter count.}
 \label{fig:fs_fc_test_heatmap}
 \end{figure}
 
@@ -377,6 +377,8 @@ There were also cases where we used a CNN that was too complex (too many filters
 Another area where we did not get to investigate in greater detail is using the features from the convolutional and pooling layers to train an SVM classifier. Once we have trained the filters (and corresponding bias terms), we can remove the following layers of the CNN and simply feed the output of the pooling layer for all training and test samples into the classifier; this provides an alternative for the classification component, even though we still use convolution and pooling operations for learning features. So, a future comparison between SVM with these features and the full convolutional neural network would be interesting.
 
 \section{Appendix: sample source code}
+
+We include samples of source code from our CNN library and plotting routines below. The full code is available in a git repository that can be accessed at \cite{git:cnn}.
 
 \subsection{CNN library (Python)}
 
