@@ -262,7 +262,7 @@ Gradient descent only completed five iterations in the ten hours allocated for t
 \label{fig:error_over_time}
 \end{figure}
 
-Figure \ref{fig:error_over_time} shows percent classification error on the training and testing datasets as the CNN training algorithm progresses. At the beginning, the improvement is much more significant, while later on we approach the best solution and are no longer able to make significant gains; in the later three hours shown, we only decrease the error rate by an additional few percentage points. Also, as a result of the stochastic gradient algorithm (which updates based on random samples at each iteration), the training error is not monotonically decreasing.
+Figure \ref{fig:error_over_time} shows percent classification error on the training and testing datasets as the CNN training algorithm progresses. At the beginning, the improvement is much more significant, while later on we approach the best solution and are no longer able to make significant gains; in the later three hours shown, we only decrease the error rate by an additional few percentage points. Also, as a result of the stochastic gradient algorithm (which updates based on random samples at each iteration), the training error is not monotonically decreasing (although it is still surprising that there are such large variations in the errors even while the network is still training overall; each fifteen-minute interval in the plot includes thirty or so SGD iterations).
 
 \begin{figure}
 	\centering
