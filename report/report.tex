@@ -16,7 +16,31 @@
 \usepackage{cite}
 \usepackage[colorlinks]{hyperref}
 \usepackage{placeins}
+\usepackage{listings}
+\usepackage{color}
 \setlength{\columnsep}{3em}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+	frame=tb,
+	language=Java,
+	aboveskip=3mm,
+	belowskip=3mm,
+	showstringspaces=false,
+	columns=flexible,
+	basicstyle={\small\ttfamily},
+	numbers=none,
+	numberstyle=\tiny\color{gray},
+	keywordstyle=\color{blue},
+	commentstyle=\color{dkgreen},
+	stringstyle=\color{mauve},
+	breaklines=true,
+	breakatwhitespace=true,
+	tabsize=3
+}
 
 \begin{document}
 
@@ -286,6 +310,40 @@ Figure \ref{fig:filter} shows four examples convolutional filters after training
 
 \subsection{Heatmap}
 
+In our previous subsections, we have investigated how changing each of filter size, filter count, or pooling size affects the performance of our neural net. We take a step further, by trying experimentations that vary TWO of the above parameters mentioned above at the same time. This means for the three parameters mentioned above, we keep one of them fixed at default value, and test different pairs of the other two parameters. However, due to the slow running time of our neural net model, we have to terminate the algorithm in 3 hours for every pair of the varying parameters. The result is presented in heat map below, with different colors showing different error rate.
+
+Figure \ref{fig:ps_fs_train_heatmap} and \ref{fig:ps_fs_test_heatmap} both show how varying pooling size and filter size affects the performance of our neural net model. Figure \ref{fig:ps_fs_train_heatmap} shows a heatmap of training error against pooling size and filter size, while figure \ref{fig:ps_fs_test_heatmap} shows a heatmap of testing error against pooling size and filter size. From the results, we can see that the training error is generally smaller than the testing error, as what we have expected. Moreover, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also performs badly in the testing set. Moreover, we observe that the optimal neural net model has pooling size ranging from about "1 by 1" to "3 by 3", and filter size ranging from "11 by 11" to "15 by 15". This is probably because with the parameters above, the neural net model not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{figure/ps_fs_train_heatmap}
+\caption{Heatmap of Training Error Against Pooling Size and Filter Size}
+\label{fig:ps_fs_train_heatmap}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{figure/ps_fs_test_heatmap}
+\caption{Heatmap of Testing Error Against Pooling Size and Filter Size}
+\label{fig:ps_fs_test_heatmap}
+\end{figure}
+
+Figure \ref{fig:fs_fc_train_heatmap} and \ref{fig:fs_fc_test_heatmap} both show how varying filter count and filter size affects the performance of our neural net model. Figure \ref{fig:fs_fc_train_heatmap}  shows a heatmap of training error against filter count and filter size, while figure \ref{fig:fs_fc_test_heatmap} shows a heatmap of testing error against filter count size and filter size. Agaiin from the heat maps, we can draw conclusions that the training error is generally smaller than the testing error, as what we have expected. Similarly, we see that there is a strong correlation between training error and testing error, i.e. model with parameters that does a bad job in the training set also tends to perform badly in the testing set. Moreover, we observe that the optimal neural net model has filter count ranging from about 8 to 32, and filter size ranging from "9 by 9" to "17 by 17". Similarly, this is probably because with the parameters above, the neural net model not only runs faster, meaning it is able to perform sufficient iterations in three hours, but also has enough complexity to describe the underlying data.
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{figure/fs_fc_train_heatmap}
+\caption{Heatmap of Training Error Against Filter Size and No. of Filters}
+\label{fig:fs_fc_train_heatmap}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{figure/fs_fc_test_heatmap}
+\caption{Heatmap of Testing Error Against Filter Size and No. of Filters}
+\label{fig:fs_fc_test_heatmap}
+\end{figure}
+
 \section{Comparison with HOG-feature recognition} \label{sec:evalfeature}
 
 Before deep learning techniques became widely used in image recognition, various other methods were used to extract the features from the image and models were trained on these features. Examples include histogram of oriented gradients (HOG) and scale-invariant feature transform (SIFT). In this section, we will compare the performance of our CNN implementation with the performance of using HOG with SVM classifier, using different percentages of the 60,000 training samples. We use the default parameters except we include a ten-neuron fully connected hidden layer between the pooling and output layers.
@@ -318,9 +376,136 @@ There were also cases where we used a CNN that was too complex (too many filters
 
 Another area where we did not get to investigate in greater detail is using the features from the convolutional and pooling layers to train an SVM classifier. Once we have trained the filters (and corresponding bias terms), we can remove the following layers of the CNN and simply feed the output of the pooling layer for all training and test samples into the classifier; this provides an alternative for the classification component, even though we still use convolution and pooling operations for learning features. So, a future comparison between SVM with these features and the full convolutional neural network would be interesting.
 
-\section{Appendix: Sample Code}
+\section{Appendix: sample source code}
 
-\subsection{Implementation of the Neural Net}
+\subsection{CNN library (Python)}
+
+\begin{lstlisting}
+class BasicNetwork:
+	def __init__(self, shape):
+		# shape is an iterable of integers, each representing a layer
+		# each integer specifies the number of neurons in that layer
+		self.nlayers = len(shape)
+		self.layers = []
+		self.shape = list(shape)
+
+		# first layer is input layer
+		self.layers.append({'type': 'input'})
+
+		# process other layers
+		for i in xrange(len(shape) - 1):
+			if isinstance(shape[i + 1], dict):
+				if shape[i + 1]['type'] == 'convsample':
+					# add a 2D convolutional/subsampling layer
+					m = shape[i + 1]['m'] # input sidelength
+					c = shape[i + 1]['c'] # number of channels in image
+					n = shape[i + 1]['n'] # filter sidelength
+					k = shape[i + 1]['k'] # number of convolutional filters
+					p = shape[i + 1]['p'] # pooled region length
+					conv_count = m - n + 1 # convolution output sidelength
+
+		....
+
+	def forward(self, inputs, return_activations = False):
+		# inputs specifies one float for each neuron in the first layer
+		# if return_activations is true, we return a list of activations at each layer
+		#  otherwise, we only return the output layer
+		values = numpy.array([inputs], float).T # values in current layer
+		activations = [{'activations': values}]
+
+		for layer in self.layers[1:]:
+			if layer['type'] == 'sigmoid':
+				# compute the weighted sum of neuron inputs, plus bias term (for each neuron in current layer)
+				z_vector = numpy.dot(layer['weights'], values) + layer['bias']
+
+				# apply sigmoid activation function
+				values = util.sigmoid(z_vector)
+				if return_activations: activations.append({'activations': values[:, 0]})
+			elif layer['type'] == 'softmax':
+			.....
+
+
+	def backward(self, inputs, desired_outputs):
+		# inputs is a list of input layer values, desired_outputs is expected output layer values
+		inputs = numpy.array([inputs], float).T
+		desired_outputs = numpy.array([desired_outputs], float).T
+
+		# execute forward propogation and store activations of each layer
+		activations = self.forward(inputs[:, 0], True)
+
+		# compute deltas at each layer
+		deltas_list = [None] * self.nlayers # deltas_list[0] is for input layer and remains None
+
+		if self.layers[self.nlayers - 1]['type'] == 'sigmoid':
+			cost = numpy.sum(abs(activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0]))
+			deltas_list[self.nlayers - 1] = numpy.multiply(activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0], util.sigmoid_d2(activations[self.nlayers - 1]['activations']))
+		elif self.layers[self.nlayers - 1]['type'] == 'softmax':
+			cost = -numpy.sum(numpy.multiply(desired_outputs[:, 0], numpy.log(activations[self.nlayers - 1]['activations'])))
+			deltas_list[self.nlayers - 1] = activations[self.nlayers - 1]['activations'] - desired_outputs[:, 0]
+		else:
+			raise Exception('invalid error function type')
+
+		for l in xrange(self.nlayers - 2, 0, -1): # for each non-input layer
+			previous_deltas = deltas_list[l + 1]
+			target_layer = self.layers[l + 1]
+
+			if target_layer['type'] == 'sigmoid' or target_layer['type'] == 'softmax':
+				sums = numpy.dot(target_layer['weights'].T,
+				.....
+
+\end{lstlisting}
+
+\subsection{Plotting routines (MATLAB)}
+\begin{lstlisting}
+
+no_of_filter_vec = 2.^[3 4 5 6 7 8];
+testing_error_vec = [334 304 266 269 364 626]/10000;
+%plot(no_of_filter_vec,testing_error_vec,'-b')
+plot (log2(no_of_filter_vec), testing_error_vec)
+
+set(gca,'XTick',[2:9])
+set(gca, 'XTickLabel',[])
+xt = get(gca, 'XTick');
+yl = get(gca, 'YLim');
+str = cellstr( num2str(xt(:),'2^{%d}') );      %# format x-ticks as 2^{xx}
+hTxt = text(xt, yl(ones(size(xt))), str, ...   %# create text at same locations
+    'Interpreter','tex', ...                   %# specify tex interpreter
+    'VerticalAlignment','top', ...             %# v-align to be underneath
+    'HorizontalAlignment','center');           %# h-aligh to be centered
+ylabel('test error')
+xlabel(sprintf('\nno. of filters'))
+
+
+no_of_filter_vec = 2.^[3 4 5 6 7 8];
+avg_iter_time = 10*60*60./[9659 4563 2343 1181 592 312];
+%plot(no_of_filter_vec,testing_error_vec,'-b')
+plot (log2(no_of_filter_vec), avg_iter_time)
+
+set(gca,'XTick',[2:9])
+set(gca, 'XTickLabel',[])
+xt = get(gca, 'XTick');
+yl = get(gca, 'YLim');
+str = cellstr( num2str(xt(:),'2^{%d}') );      %# format x-ticks as 2^{xx}
+hTxt = text(xt, yl(ones(size(xt))), str, ...   %# create text at same locations
+    'Interpreter','tex', ...                   %# specify tex interpreter
+    'VerticalAlignment','top', ...             %# v-align to be underneath
+    'HorizontalAlignment','center');           %# h-aligh to be centered
+ylabel('test error')
+xlabel(sprintf('\nno. of filters'))
+
+filter_size_vec = [5 7 9 11 13 15];
+testing_error_vec = [605 369 301 359 269 406]/10000;
+plot(filter_size_vec,testing_error_vec,'-b')
+xlabel('filter size')
+ylabel('test error')
+
+filter_size_vec = [5 7 9 11 13 15];
+avg_iter_time = 10*60*60 ./ [2290 1744 1521 1350 1181 1227];
+plot(filter_size_vec,avg_iter_time,'-b')
+xlabel('filter size')
+ylabel('time of one iteration / sec')
+
+\end{lstlisting}
 
 \bibliography{report}{}
 \bibliographystyle{plain}
