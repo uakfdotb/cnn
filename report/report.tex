@@ -233,6 +233,20 @@ Softmax activation resulted in an error rate of 59.62\% compared to 2.69\% with 
 
 Gradient descent only completed five iterations in the ten hours allocated for training, and got an error rate of 90.2\%. This is equivalent to a random classifier, so clearly the network was not trained for long enough to have a useful structure. Stochastic gradient descent, which achieved the 2.69\% error, solves this problem by randomly taking subsets of the data during each iteration so that we can train for a higher number of iterations, even if there is greater variance in the derivatives at each iteration.
 
+\begin{figure}[h]
+	\centering
+	\begin{subfigure}{.23\textwidth}
+		\includegraphics[width=\textwidth]{figure/filter1}
+	\end{subfigure}
+	\begin{subfigure}{.23\textwidth}
+		\includegraphics[width=\textwidth]{figure/filter2}
+	\end{subfigure}
+	\caption{Examples of convolutional filters. These filters are 13 by 13 pixels.}
+	\label{fig:filter}
+\end{figure}
+
+Figure \ref{fig:filter} shows two example convolutional filters after training. It appears that these filters recognize parts of digits; the output layer weights can then take care of piecing the parts together to recognize the entire handwritten digit.
+
 \subsection{Heatmap}
 
 \section{Comparison with HOG-feature recognition} \label{sec:evalfeature}
