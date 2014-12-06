@@ -95,7 +95,7 @@ Convolutional neural networks present a more interesting case, where the convolu
 
 We implement a CPU-based convolutional neural network library \cite{git:cnn} in Python using the \texttt{numpy} package, which provides fast scientific computing operations. Our implementation includes a \texttt{Network} class which has attributes that represent the number of layers and the number of neurons in each layer. Our code can use either ``softmax'' or ``sigmoid'' activation functions of neurons in the fully connected layers of the network. Our code initializes weights to be random and uniformly distributed within [-1,1), which serves the purpose of breaking symmetry so that filters train in different directions. The network class has separate functions to support forward propogation and backward propogation. For forward propagation, it simply involves looping over all the neurons, computing the output of the current layer from the output of the previous layer's values; the output from the final layer is returned. In backward propagation, our code comptues and averages the derivatives across a subset of the data (the subset is chosen randomly per stochastic gradient descent algorithm); this step is the most computationally expensive. After that, we update the weights simultaneously by applying the momentum formula in section \ref{subsec:SGD}. Please see appendix for more details on our implementation.
 
-\begin{figure}[h]
+\begin{figure}
 	\centering
 	\begin{subfigure}{.23\textwidth}
 		\includegraphics[width=\textwidth]{figure/mnist1}
@@ -251,7 +251,16 @@ Softmax activation resulted in an error rate of 59.62\% compared to 2.69\% with 
 
 Gradient descent only completed five iterations in the ten hours allocated for training, and got an error rate of 90.2\%. This is equivalent to a random classifier, so clearly the network was not trained for long enough to have a useful structure. Stochastic gradient descent, which achieved the 2.69\% error, solves this problem by randomly taking subsets of the data during each iteration so that we can train for a higher number of iterations, even if there is greater variance in the derivatives at each iteration.
 
-\begin{figure}[h]
+\begin{figure}
+\centering
+\includegraphics[width = 0.5\textwidth]{figure/error_over_time}
+\caption{Training and testing error at different training durations (plotted at fifteen minute intervals).}
+\label{fig:error_over_time}
+\end{figure}
+
+Figure \ref{fig:error_over_time} shows percent classification error on the training and testing datasets as the CNN training algorithm progresses. At the beginning, the improvement is much more significant, while later on we approach the best solution and are no longer able to make significant gains; in the later three hours shown, we only decrease the error rate by an additional few percentage points. Also, as a result of the stochastic gradient algorithm (which updates based on random samples at each iteration), the training error is not monotonically decreasing.
+
+\begin{figure}
 	\centering
 	\begin{subfigure}{.23\textwidth}
 		\includegraphics[width=\textwidth]{figure/filter1}
