@@ -272,11 +272,17 @@ Figure \ref{fig:error_over_time} shows percent classification error on the train
 	\begin{subfigure}{.23\textwidth}
 		\includegraphics[width=\textwidth]{figure/filter2}
 	\end{subfigure}
-	\caption{Examples of convolutional filters. These filters are 13 by 13 pixels.}
+	\begin{subfigure}{.23\textwidth}
+		\includegraphics[width=\textwidth]{figure/filter3}
+	\end{subfigure}
+	\begin{subfigure}{.23\textwidth}
+		\includegraphics[width=\textwidth]{figure/filter4}
+	\end{subfigure}
+	\caption{Examples of convolutional filters. These filters are 13 by 13 pixels. The top two filters are from a 32-filter CNN while the bottom two are from an 8-filter CNN. White indicates negative filter values while black indicates positive values.}
 	\label{fig:filter}
 \end{figure}
 
-Figure \ref{fig:filter} shows two example convolutional filters after training. It appears that these filters recognize parts of digits; the output layer weights can then take care of piecing the parts together to recognize the entire handwritten digit.
+Figure \ref{fig:filter} shows four examples convolutional filters after training. It appears that these filters recognize parts of digits; the output layer weights can then take care of piecing the parts together to recognize the entire handwritten digit.
 
 \subsection{Heatmap}
 
